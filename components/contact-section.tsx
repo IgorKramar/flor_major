@@ -72,12 +72,12 @@ export function ContactSection() {
                 <div>
                   <h3 className="font-medium mb-1">Телефон</h3>
                   <p className="text-muted-foreground text-sm sm:text-base">
-                    <a href="tel:+79139757612" className="hover:text-primary transition-colors">
-                      +7 (913) 975-76-12
+                    <a href="tel:+79333033942" className="hover:text-primary transition-colors">
+                      +7 (933) 303-39-42
                     </a>
                     <br />
-                    <a href="tel:+79997654321" className="hover:text-primary transition-colors">
-                      +7 (999) 765-43-21
+                    <a href="tel:+79139757612" className="hover:text-primary transition-colors">
+                      +7 (913) 975-76-12
                     </a>
                   </p>
                 </div>

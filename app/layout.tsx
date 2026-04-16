@@ -117,7 +117,7 @@ export default function RootLayout({
               name: "ФЛОРМАЖОР",
               image: "https://flormajor-omsk.ru/og-image.jpg",
               url: "https://flormajor-omsk.ru/",
-              telephone: "+7 (913) 975-76-12",
+              telephone: "+7 (933) 303-39-42",
               priceRange: "₽₽",
               address: {
                 "@type": "PostalAddress",
@@ -140,7 +140,7 @@ export default function RootLayout({
                   closes: "23:59",
                 },
               ],
-              sameAs: ["https://vk.com/flormajor", "https://t.me/flormajor", "https://wa.me/79139757612"],
+              sameAs: ["https://vk.com/flormajor", "https://t.me/flormajor", "https://wa.me/79333033942"],
               aggregateRating: {
                 "@type": "AggregateRating",
                 ratingValue: "4.9",

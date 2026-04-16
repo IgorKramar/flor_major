@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 
 const socials = [
   { name: "Instagram", icon: Instagram, link: "https://instagram.com/flormajor" },
-  { name: "WhatsApp", icon: MessageCircle, link: "https://wa.me/79139757612" },
+  { name: "WhatsApp", icon: MessageCircle, link: "https://wa.me/79333033942" },
   { name: "Telegram", icon: Send, link: "https://t.me/flormajor" },
 ]
 
@@ -99,8 +99,8 @@ export function Footer() {
             isVisible ? "opacity-100" : "opacity-0"
           )}
         >
-          <a href="tel:+79139757612" className="hover:text-primary transition-colors">
-            +7 (913) 975-76-12
+          <a href="tel:+79333033942" className="hover:text-primary transition-colors">
+            +7 (933) 303-39-42
           </a>
           <span className="text-white/20 hidden sm:inline" aria-hidden="true">|</span>
           <a href="mailto:info@flormajor.ru" className="hover:text-primary transition-colors">
