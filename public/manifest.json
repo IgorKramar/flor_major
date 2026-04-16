@@ -1,0 +1,27 @@
+{
+  "name": "ФЛОРМАЖОР — Магазин цветов в Омске",
+  "short_name": "Флормажор",
+  "description": "Свежие букеты и цветочные композиции в Омске. Доставка по городу круглосуточно.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf9f7",
+  "theme_color": "#c89f9f",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "ru",
+  "categories": ["shopping", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
