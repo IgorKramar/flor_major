@@ -202,21 +202,21 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-serif font-bold text-gray-900">Букеты</h1>
-          <p className="text-gray-600 mt-1">Управление ассортиментом товаров</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">Букеты</h1>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">Управление ассортиментом товаров</p>
         </div>
         <div className="flex gap-2">
           <Link
             href="/admin/categories"
-            className="px-4 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50"
+            className="flex-1 sm:flex-none text-center px-4 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50"
           >
             Категории
           </Link>
           <button
             onClick={openNew}
-            className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-colors"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-colors"
           >
             <Plus className="w-5 h-5" />
             Добавить
@@ -298,10 +298,10 @@ export default function ProductsPage() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            <div className="p-5 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-5 sm:mb-6">
                 {editingId ? 'Редактировать товар' : 'Новый товар'}
               </h2>
 
@@ -321,7 +321,7 @@ export default function ProductsPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Цена *
@@ -377,7 +377,7 @@ export default function ProductsPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Бейдж
@@ -413,7 +413,7 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Slug (URL)

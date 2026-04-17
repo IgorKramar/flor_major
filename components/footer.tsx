@@ -72,11 +72,11 @@ export function Footer({ config, socials, contact }: FooterProps) {
           </nav>
         )}
 
-        <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-10 mb-8 sm:mb-10 text-xs sm:text-sm text-white/70">
+        <div className="flex flex-wrap justify-center gap-y-2 gap-x-4 sm:gap-x-6 md:gap-x-10 mb-8 sm:mb-10 text-xs sm:text-sm text-white/70 max-w-full">
           {contact.phone_primary && (
             <a
               href={`tel:${contact.phone_primary.replace(/[^\d+]/g, '')}`}
-              className="hover:text-primary transition-colors"
+              className="hover:text-primary transition-colors break-words"
             >
               {contact.phone_primary}
             </a>
@@ -88,7 +88,7 @@ export function Footer({ config, socials, contact }: FooterProps) {
               </span>
               <a
                 href={`mailto:${contact.email}`}
-                className="hover:text-primary transition-colors"
+                className="hover:text-primary transition-colors break-all"
               >
                 {contact.email}
               </a>
@@ -99,7 +99,7 @@ export function Footer({ config, socials, contact }: FooterProps) {
               <span className="text-white/20 hidden sm:inline" aria-hidden="true">
                 |
               </span>
-              <span className="hidden sm:inline">{contact.address}</span>
+              <span className="hidden sm:inline break-words">{contact.address}</span>
             </>
           )}
         </div>

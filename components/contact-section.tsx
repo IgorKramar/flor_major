@@ -48,9 +48,9 @@ export function ContactSection({
                     <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary flex items-center justify-center text-primary-foreground flex-shrink-0">
                       <MapPin className="w-5 h-5" aria-hidden="true" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <h3 className="font-medium mb-1">Адрес</h3>
-                      <p className="text-muted-foreground text-sm sm:text-base">
+                      <p className="text-muted-foreground text-sm sm:text-base break-words">
                         {contact.address}
                         {contact.working_hours && (
                           <>
@@ -69,9 +69,9 @@ export function ContactSection({
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary flex items-center justify-center text-primary-foreground flex-shrink-0">
                     <Phone className="w-5 h-5" aria-hidden="true" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <h3 className="font-medium mb-1">Телефон</h3>
-                    <p className="text-muted-foreground text-sm sm:text-base">
+                    <p className="text-muted-foreground text-sm sm:text-base break-words">
                       <a
                         href={telHref(contact.phone_primary)}
                         className="hover:text-primary transition-colors"
@@ -99,13 +99,13 @@ export function ContactSection({
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary flex items-center justify-center text-primary-foreground flex-shrink-0">
                     <Mail className="w-5 h-5" aria-hidden="true" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <h3 className="font-medium mb-1">Email & Мессенджеры</h3>
-                    <p className="text-muted-foreground text-sm sm:text-base">
+                    <p className="text-muted-foreground text-sm sm:text-base break-words">
                       {contact.email && (
                         <a
                           href={`mailto:${contact.email}`}
-                          className="hover:text-primary transition-colors"
+                          className="hover:text-primary transition-colors break-all"
                         >
                           {contact.email}
                         </a>

@@ -136,31 +136,31 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-serif font-bold text-gray-900">Обзор</h1>
-        <p className="text-gray-600 mt-1">
+    <div className="space-y-6 sm:space-y-8">
+      <div className="min-w-0">
+        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">Обзор</h1>
+        <p className="text-gray-600 mt-1 text-sm sm:text-base">
           Добро пожаловать в панель управления ФЛОРМАЖОР
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {statCards.map((stat) => {
           const Icon = stat.icon
           return (
             <Link
               key={stat.name}
               href={stat.href}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+              className="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-600 truncate">{stat.name}</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">
                     {stat.value}
                   </p>
                 </div>
-                <div className={`${stat.bgColor} p-3 rounded-lg`}>
+                <div className={`${stat.bgColor} p-3 rounded-lg flex-shrink-0`}>
                   <Icon className={`w-6 h-6 ${stat.color}`} />
                 </div>
               </div>
@@ -169,8 +169,8 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 sm:p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Последние заявки
           </h2>
@@ -182,13 +182,13 @@ export default function AdminDashboard() {
                 <Link
                   key={lead.id}
                   href={`/admin/leads?id=${lead.id}`}
-                  className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="flex items-center justify-between gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <div>
-                    <p className="font-medium text-gray-900">{lead.name}</p>
-                    <p className="text-sm text-gray-600">{lead.phone}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-gray-900 truncate">{lead.name}</p>
+                    <p className="text-sm text-gray-600 truncate">{lead.phone}</p>
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 flex-shrink-0 whitespace-nowrap">
                     {new Date(lead.created_at).toLocaleDateString('ru-RU')}
                   </span>
                 </Link>
@@ -197,7 +197,7 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 sm:p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Быстрые действия
           </h2>

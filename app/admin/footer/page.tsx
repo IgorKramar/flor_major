@@ -81,13 +81,13 @@ export default function FooterPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-serif font-bold text-gray-900">Футер</h1>
-        <p className="text-gray-600 mt-1">Настройка нижней части сайта</p>
+      <div className="min-w-0">
+        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">Футер</h1>
+        <p className="text-gray-600 mt-1 text-sm sm:text-base">Настройка нижней части сайта</p>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Название бренда (в футере)
@@ -126,7 +126,7 @@ export default function FooterPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Фон

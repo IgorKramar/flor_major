@@ -145,9 +145,9 @@ export default function LeadsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-serif font-bold text-gray-900">Заявки</h1>
-        <p className="text-gray-600 mt-1">
+      <div className="min-w-0">
+        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">Заявки</h1>
+        <p className="text-gray-600 mt-1 text-sm sm:text-base">
           Управление заявками клиентов (обновляется в реальном времени)
         </p>
       </div>
@@ -158,7 +158,7 @@ export default function LeadsPage() {
             <button
               key={status}
               onClick={() => setFilter(status)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 filter === status
                   ? 'bg-gray-900 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
@@ -170,7 +170,84 @@ export default function LeadsPage() {
         )}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="md:hidden space-y-3">
+        {filteredLeads.map((lead) => (
+          <button
+            key={lead.id}
+            type="button"
+            onClick={() => {
+              setSelected(lead)
+              setNotes(lead.notes ?? '')
+            }}
+            className="w-full text-left bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <span className="text-primary-dark font-semibold">
+                  {lead.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-medium text-gray-900 truncate">{lead.name}</p>
+                  <span
+                    className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap ${
+                      STATUS_COLORS[lead.status as LeadStatus] ??
+                      'bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {STATUS_LABELS[lead.status as LeadStatus] ?? lead.status}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 text-sm text-gray-500 mt-0.5">
+                  <Phone className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{lead.phone}</span>
+                </div>
+                {lead.interest && (
+                  <p className="text-sm text-gray-700 mt-2 line-clamp-2">
+                    {lead.interest}
+                  </p>
+                )}
+                <div className="flex items-center gap-1 text-xs text-gray-400 mt-2">
+                  <Clock className="w-3 h-3" />
+                  {new Date(lead.created_at).toLocaleDateString('ru-RU', {
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </div>
+              </div>
+            </div>
+            <div
+              className="mt-3 pt-3 border-t border-gray-100"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <select
+                value={lead.status}
+                onChange={(e) =>
+                  updateStatus(lead.id, e.target.value as LeadStatus)
+                }
+                className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+              >
+                <option value="new">Новая</option>
+                <option value="contacted">В работе</option>
+                <option value="completed">Завершена</option>
+                <option value="cancelled">Отменена</option>
+              </select>
+            </div>
+          </button>
+        ))}
+
+        {filteredLeads.length === 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 text-center py-12">
+            <Mail className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500">Заявок не найдено</p>
+          </div>
+        )}
+      </div>
+
+      <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -283,11 +360,11 @@ export default function LeadsPage() {
       </div>
 
       {selected && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="p-6 space-y-4">
+            <div className="p-5 sm:p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                   Заявка #{selected.id}
                 </h2>
                 <button

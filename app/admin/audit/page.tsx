@@ -57,11 +57,11 @@ export default function AuditPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-serif font-bold text-gray-900">
+      <div className="min-w-0">
+        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">
           Журнал изменений
         </h1>
-        <p className="text-gray-600 mt-1">
+        <p className="text-gray-600 mt-1 text-sm sm:text-base">
           Последние 200 операций INSERT / UPDATE / DELETE
         </p>
       </div>
@@ -102,21 +102,21 @@ export default function AuditPage() {
           <div className="divide-y divide-gray-100">
             {items.map((item) => (
               <details key={item.id} className="group">
-                <summary className="px-4 py-3 cursor-pointer hover:bg-gray-50 flex items-center gap-4 text-sm">
+                <summary className="px-3 sm:px-4 py-3 cursor-pointer hover:bg-gray-50 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                   <span
-                    className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
+                    className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
                       ACTION_COLORS[item.action] ?? 'bg-gray-100 text-gray-700'
                     }`}
                   >
                     {item.action}
                   </span>
-                  <span className="font-medium text-gray-900">
+                  <span className="font-medium text-gray-900 break-all">
                     {item.table_name}
                   </span>
                   {item.record_id != null && (
                     <span className="text-gray-500">#{item.record_id}</span>
                   )}
-                  <span className="text-gray-400 ml-auto">
+                  <span className="text-gray-400 text-xs sm:text-sm sm:ml-auto w-full sm:w-auto">
                     {new Date(item.created_at).toLocaleString('ru-RU')}
                   </span>
                 </summary>

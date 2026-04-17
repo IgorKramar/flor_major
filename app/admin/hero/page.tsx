@@ -110,15 +110,15 @@ export default function HeroSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-serif font-bold text-gray-900">
+      <div className="min-w-0">
+        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">
           Главная страница
         </h1>
-        <p className="text-gray-600 mt-1">Настройка hero-секции</p>
+        <p className="text-gray-600 mt-1 text-sm sm:text-base">Настройка hero-секции</p>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Заголовок

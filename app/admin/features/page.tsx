@@ -106,16 +106,16 @@ export default function FeaturesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-serif font-bold text-gray-900">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">
             Преимущества
           </h1>
-          <p className="text-gray-600 mt-1">Блок «Почему нас выбирают»</p>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">Блок «Почему нас выбирают»</p>
         </div>
         <button
           onClick={openNew}
-          className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-gray-800"
+          className="inline-flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-gray-800 w-full sm:w-auto"
         >
           <Plus className="w-5 h-5" />
           Добавить
@@ -165,7 +165,7 @@ export default function FeaturesPage() {
       {modal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <form onSubmit={save} className="p-6 space-y-4">
+            <form onSubmit={save} className="p-5 sm:p-6 space-y-4">
               <h2 className="text-2xl font-bold">
                 {editingId ? 'Редактировать' : 'Новое преимущество'}
               </h2>

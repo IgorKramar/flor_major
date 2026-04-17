@@ -122,14 +122,14 @@ export default function ContactsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-serif font-bold text-gray-900">Контакты</h1>
-        <p className="text-gray-600 mt-1">Настройка контактной информации</p>
+      <div className="min-w-0">
+        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">Контакты</h1>
+        <p className="text-gray-600 mt-1 text-sm sm:text-base">Настройка контактной информации</p>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Phone className="w-5 h-5 text-primary" />
               <h2 className="text-lg font-semibold text-gray-900">Телефоны</h2>
@@ -148,7 +148,7 @@ export default function ContactsPage() {
             />
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Mail className="w-5 h-5 text-primary" />
               <h2 className="text-lg font-semibold text-gray-900">
@@ -173,14 +173,14 @@ export default function ContactsPage() {
             />
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:col-span-2 space-y-4">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 md:col-span-2 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <MapPin className="w-5 h-5 text-primary" />
               <h2 className="text-lg font-semibold text-gray-900">
                 Адрес и график
               </h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <Field
                 label="Адрес"
                 value={form.address}

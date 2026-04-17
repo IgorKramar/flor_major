@@ -59,16 +59,16 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-serif font-bold text-gray-900">
+      <div className="min-w-0">
+        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">
           Настройки сайта
         </h1>
-        <p className="text-gray-600 mt-1">Общие параметры работы сайта</p>
+        <p className="text-gray-600 mt-1 text-sm sm:text-base">Общие параметры работы сайта</p>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Bell className="w-5 h-5 text-primary" />
               <h2 className="text-lg font-semibold text-gray-900">Функции</h2>
@@ -89,7 +89,7 @@ export default function SettingsPage() {
             />
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Shield className="w-5 h-5 text-primary" />
               <h2 className="text-lg font-semibold text-gray-900">Информация</h2>
