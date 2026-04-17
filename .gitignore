@@ -1,16 +1,57 @@
-# v0 sandbox internal files
-__v0_runtime_loader.js
-__v0_devtools.tsx
-__v0_jsx-dev-runtime.ts
-.snowflake/
-.v0-trash/
-.vercel/
-next.user-config.*
+```
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+coverage/
+htmlcov/
 
 # Environment variables
-.env*.local
+.env
+.env.local
+.env.*
 
-# Common ignores
-node_modules
-.next/
+# Logs
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/modules/
 .DS_Store
+Thumbs.db
+
+# Next.js
+.next/
+out/
+
+# Supabase
+.supabase/
+```
