@@ -1,91 +1,111 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { Save, Phone, MapPin, Mail, Clock } from 'lucide-react'
+import { Save, Phone, MapPin, Mail } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
+import { revalidateSiteCache } from '@/lib/revalidate'
+import { contactInfoSchema } from '@/lib/validation/schemas'
 
-interface ContactSettings {
-  phone: string
-  phoneSecondary: string
+interface ContactForm {
+  phone_primary: string
+  phone_secondary: string
   email: string
   address: string
-  workingHours: string
+  working_hours: string
   whatsapp: string
   telegram: string
+  postal_code: string
+  address_region: string
+  address_locality: string
+  address_country: string
+  geo_lat: string
+  geo_lng: string
+}
+
+const DEFAULTS: ContactForm = {
+  phone_primary: '',
+  phone_secondary: '',
+  email: '',
+  address: '',
+  working_hours: '',
+  whatsapp: '',
+  telegram: '',
+  postal_code: '',
+  address_region: '',
+  address_locality: '',
+  address_country: 'RU',
+  geo_lat: '',
+  geo_lng: '',
 }
 
 export default function ContactsPage() {
+  const { supabase } = useAuth()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [contacts, setContacts] = useState<ContactSettings>({
-    phone: '+7 (933) 303-39-42',
-    phoneSecondary: '+7 (913) 975-76-12',
-    email: 'info@flormajor.ru',
-    address: 'г. Омск, ул. Карла Маркса, 50',
-    workingHours: 'Ежедневно. Круглосуточно.',
-    whatsapp: '+79333033942',
-    telegram: '@flormajor',
-  })
+  const [form, setForm] = useState<ContactForm>(DEFAULTS)
+
+  const load = useCallback(async () => {
+    const { data } = await supabase
+      .from('contact_info')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle()
+    if (data) {
+      setForm({
+        phone_primary: data.phone_primary ?? '',
+        phone_secondary: data.phone_secondary ?? '',
+        email: data.email ?? '',
+        address: data.address ?? '',
+        working_hours: data.working_hours ?? '',
+        whatsapp: data.whatsapp ?? '',
+        telegram: data.telegram ?? '',
+        postal_code: data.postal_code ?? '',
+        address_region: data.address_region ?? '',
+        address_locality: data.address_locality ?? '',
+        address_country: data.address_country ?? 'RU',
+        geo_lat: data.geo_lat != null ? String(data.geo_lat) : '',
+        geo_lng: data.geo_lng != null ? String(data.geo_lng) : '',
+      })
+    }
+    setLoading(false)
+  }, [supabase])
 
   useEffect(() => {
-    loadContacts()
-  }, [])
-
-  async function loadContacts() {
-    try {
-      const { data, error } = await supabase.from('site_config').select('*')
-
-      if (error) throw error
-
-      if (data && data.length > 0) {
-        const configObj: Record<string, string> = {}
-        data.forEach((row: { config_key: string; config_value: string }) => {
-          configObj[row.config_key] = row.config_value
-        })
-
-        setContacts({
-          phone: configObj['phone'] || contacts.phone,
-          phoneSecondary: configObj['phone_secondary'] || contacts.phoneSecondary,
-          email: configObj['email'] || contacts.email,
-          address: configObj['address'] || contacts.address,
-          workingHours: configObj['working_hours'] || contacts.workingHours,
-          whatsapp: configObj['whatsapp'] || contacts.whatsapp,
-          telegram: configObj['telegram'] || contacts.telegram,
-        })
-      }
-    } catch (error) {
-      console.error('Error loading contacts:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+    load()
+  }, [load])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
+    const parsed = contactInfoSchema.safeParse({
+      phone_primary: form.phone_primary,
+      phone_secondary: form.phone_secondary || null,
+      email: form.email,
+      address: form.address,
+      working_hours: form.working_hours,
+      whatsapp: form.whatsapp || null,
+      telegram: form.telegram || null,
+      postal_code: form.postal_code || null,
+      address_region: form.address_region || null,
+      address_locality: form.address_locality || null,
+      address_country: form.address_country || null,
+      geo_lat: form.geo_lat || null,
+      geo_lng: form.geo_lng || null,
+    })
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? 'Проверьте поля')
+      return
+    }
     setSaving(true)
-
     try {
-      const updates = [
-        { config_key: 'phone', config_value: contacts.phone },
-        { config_key: 'phone_secondary', config_value: contacts.phoneSecondary },
-        { config_key: 'email', config_value: contacts.email },
-        { config_key: 'address', config_value: contacts.address },
-        { config_key: 'working_hours', config_value: contacts.workingHours },
-        { config_key: 'whatsapp', config_value: contacts.whatsapp },
-        { config_key: 'telegram', config_value: contacts.telegram },
-      ]
-
-      for (const update of updates) {
-        const { error } = await supabase.from('site_config').upsert(update, {
-          onConflict: 'config_key',
-        })
-        if (error) throw error
-      }
-
+      const { error } = await supabase
+        .from('contact_info')
+        .upsert({ id: 1, ...parsed.data }, { onConflict: 'id' })
+      if (error) throw error
       toast.success('Контакты сохранены')
+      await revalidateSiteCache('/')
     } catch (error) {
-      console.error('Error saving contacts:', error)
+      console.error(error)
       toast.error('Ошибка сохранения')
     } finally {
       setSaving(false)
@@ -95,182 +115,116 @@ export default function ContactsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-serif font-bold text-gray-900">Контакты</h1>
         <p className="text-gray-600 mt-1">Настройка контактной информации</p>
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSave} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Phone */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Phone className="w-5 h-5 text-primary" />
               <h2 className="text-lg font-semibold text-gray-900">Телефоны</h2>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Основной телефон
-              </label>
-              <input
-                type="tel"
-                value={contacts.phone}
-                onChange={(e) => setContacts({ ...contacts, phone: e.target.value })}
-                placeholder="+7 (___) ___-__-__"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Дополнительный телефон
-              </label>
-              <input
-                type="tel"
-                value={contacts.phoneSecondary}
-                onChange={(e) => setContacts({ ...contacts, phoneSecondary: e.target.value })}
-                placeholder="+7 (___) ___-__-__"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-              />
-            </div>
+            <Field
+              label="Основной телефон"
+              value={form.phone_primary}
+              onChange={(v) => setForm({ ...form, phone_primary: v })}
+              placeholder="+7 (___) ___-__-__"
+            />
+            <Field
+              label="Дополнительный телефон"
+              value={form.phone_secondary}
+              onChange={(v) => setForm({ ...form, phone_secondary: v })}
+              placeholder="+7 (___) ___-__-__"
+            />
           </div>
 
-          {/* Email & Messengers */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Mail className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-semibold text-gray-900">Email и мессенджеры</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Email и мессенджеры
+              </h2>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                value={contacts.email}
-                onChange={(e) => setContacts({ ...contacts, email: e.target.value })}
-                placeholder="info@flormajor.ru"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                WhatsApp
-              </label>
-              <input
-                type="text"
-                value={contacts.whatsapp}
-                onChange={(e) => setContacts({ ...contacts, whatsapp: e.target.value })}
-                placeholder="+79333033942"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Telegram
-              </label>
-              <input
-                type="text"
-                value={contacts.telegram}
-                onChange={(e) => setContacts({ ...contacts, telegram: e.target.value })}
-                placeholder="@flormajor"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-              />
-            </div>
+            <Field
+              label="Email"
+              type="email"
+              value={form.email}
+              onChange={(v) => setForm({ ...form, email: v })}
+            />
+            <Field
+              label="WhatsApp (URL или номер)"
+              value={form.whatsapp}
+              onChange={(v) => setForm({ ...form, whatsapp: v })}
+            />
+            <Field
+              label="Telegram (URL или @username)"
+              value={form.telegram}
+              onChange={(v) => setForm({ ...form, telegram: v })}
+            />
           </div>
 
-          {/* Address */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:col-span-2 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <MapPin className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-semibold text-gray-900">Адрес и время работы</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Адрес и график
+              </h2>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Адрес
-                </label>
-                <input
-                  type="text"
-                  value={contacts.address}
-                  onChange={(e) => setContacts({ ...contacts, address: e.target.value })}
-                  placeholder="г. Омск, ул. Карла Маркса, 50"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Время работы
-                </label>
-                <input
-                  type="text"
-                  value={contacts.workingHours}
-                  onChange={(e) => setContacts({ ...contacts, workingHours: e.target.value })}
-                  placeholder="Ежедневно. Круглосуточно."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                />
-              </div>
+              <Field
+                label="Адрес"
+                value={form.address}
+                onChange={(v) => setForm({ ...form, address: v })}
+              />
+              <Field
+                label="Время работы"
+                value={form.working_hours}
+                onChange={(v) => setForm({ ...form, working_hours: v })}
+              />
+              <Field
+                label="Регион"
+                value={form.address_region}
+                onChange={(v) => setForm({ ...form, address_region: v })}
+              />
+              <Field
+                label="Город"
+                value={form.address_locality}
+                onChange={(v) => setForm({ ...form, address_locality: v })}
+              />
+              <Field
+                label="Индекс"
+                value={form.postal_code}
+                onChange={(v) => setForm({ ...form, postal_code: v })}
+              />
+              <Field
+                label="Страна (ISO)"
+                value={form.address_country}
+                onChange={(v) => setForm({ ...form, address_country: v })}
+              />
+              <Field
+                label="Широта"
+                value={form.geo_lat}
+                onChange={(v) => setForm({ ...form, geo_lat: v })}
+              />
+              <Field
+                label="Долгота"
+                value={form.geo_lng}
+                onChange={(v) => setForm({ ...form, geo_lng: v })}
+              />
             </div>
           </div>
         </div>
 
-        {/* Preview Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Предпросмотр</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <MapPin className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-900">Адрес</h3>
-                <p className="text-sm text-gray-600 mt-1">{contacts.address}</p>
-                <p className="text-xs text-gray-500 mt-1">{contacts.workingHours}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Phone className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-900">Телефон</h3>
-                <p className="text-sm text-gray-600 mt-1">{contacts.phone}</p>
-                {contacts.phoneSecondary && (
-                  <p className="text-xs text-gray-500 mt-1">{contacts.phoneSecondary}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Mail className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-900">Связь</h3>
-                <p className="text-sm text-gray-600 mt-1">{contacts.email}</p>
-                <p className="text-xs text-gray-500 mt-1">WhatsApp / Telegram</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Save Button */}
         <div className="flex justify-end">
           <button
             type="submit"
@@ -282,6 +236,31 @@ export default function ContactsPage() {
           </button>
         </div>
       </form>
+    </div>
+  )
+}
+
+interface FieldProps {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  type?: string
+}
+
+function Field({ label, value, onChange, placeholder, type = 'text' }: FieldProps) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        {label}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+      />
     </div>
   )
 }

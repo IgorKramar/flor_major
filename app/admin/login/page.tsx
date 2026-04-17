@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { Spinner } from '@/components/ui/spinner'
 
@@ -10,14 +10,24 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { signIn, session, loading } = useAuth()
+  const { signIn, signOut, session, loading } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const notAdmin = searchParams.get('error') === 'not_admin'
 
   useEffect(() => {
-    if (!loading && session) {
+    if (notAdmin) {
+      setError(
+        'Ваш аккаунт вошёл в систему, но у него нет прав на панель управления. Обратитесь к владельцу проекта.',
+      )
+    }
+  }, [notAdmin])
+
+  useEffect(() => {
+    if (!loading && session && !notAdmin) {
       router.push('/admin')
     }
-  }, [session, loading, router])
+  }, [session, loading, router, notAdmin])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,7 +50,7 @@ export default function AdminLoginPage() {
     )
   }
 
-  if (session) {
+  if (session && !notAdmin) {
     return null
   }
 
@@ -113,6 +123,21 @@ export default function AdminLoginPage() {
               )}
             </button>
           </form>
+
+          {notAdmin && session && (
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={async () => {
+                  await signOut()
+                  router.replace('/admin/login')
+                }}
+                className="text-sm text-gray-600 hover:text-primary transition-colors underline"
+              >
+                Выйти и войти под другим аккаунтом
+              </button>
+            </div>
+          )}
 
           <div className="mt-6 pt-6 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">

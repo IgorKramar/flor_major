@@ -1,28 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { Mail, Phone, CheckCircle2, Clock } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Mail, Phone, Clock, MessageSquare, X } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAuth } from '@/lib/auth-context'
+import type { Tables } from '@/lib/database.types'
 
-interface Lead {
-  id: number
-  name: string
-  phone: string
-  message?: string
-  interest?: string
-  status: 'new' | 'contacted' | 'completed' | 'cancelled'
-  created_at: string
-}
+type Lead = Tables<'leads'>
+type LeadStatus = 'new' | 'contacted' | 'completed' | 'cancelled'
 
-const statusColors = {
+const STATUS_COLORS: Record<LeadStatus, string> = {
   new: 'bg-blue-100 text-blue-800',
   contacted: 'bg-yellow-100 text-yellow-800',
   completed: 'bg-green-100 text-green-800',
   cancelled: 'bg-red-100 text-red-800',
 }
 
-const statusLabels = {
+const STATUS_LABELS: Record<LeadStatus, string> = {
   new: 'Новая',
   contacted: 'В работе',
   completed: 'Завершена',
@@ -30,87 +24,152 @@ const statusLabels = {
 }
 
 export default function LeadsPage() {
+  const { supabase } = useAuth()
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'new' | 'contacted' | 'completed' | 'cancelled'>('all')
+  const [filter, setFilter] = useState<'all' | LeadStatus>('all')
+  const [selected, setSelected] = useState<Lead | null>(null)
+  const [notes, setNotes] = useState('')
+
+  const load = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (error) {
+      toast.error('Ошибка загрузки заявок')
+    } else {
+      setLeads(data ?? [])
+    }
+    setLoading(false)
+  }, [supabase])
 
   useEffect(() => {
-    loadLeads()
-  }, [])
+    load()
+  }, [load])
 
-  async function loadLeads() {
-    try {
-      const { data, error } = await supabase
-        .from('leads')
-        .select('*')
-        .order('created_at', { ascending: false })
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-leads')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'leads' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newLead = payload.new as Lead
+            setLeads((prev) => [newLead, ...prev])
+            toast.success(`Новая заявка от ${newLead.name}`)
+          } else if (payload.eventType === 'UPDATE') {
+            setLeads((prev) =>
+              prev.map((lead) =>
+                lead.id === (payload.new as Lead).id ? (payload.new as Lead) : lead,
+              ),
+            )
+          } else if (payload.eventType === 'DELETE') {
+            setLeads((prev) => prev.filter((lead) => lead.id !== (payload.old as Lead).id))
+          }
+        },
+      )
+      .subscribe()
 
-      if (error) throw error
-      setLeads(data || [])
-    } catch (error) {
-      console.error('Error loading leads:', error)
-      toast.error('Ошибка загрузки заявок')
-    } finally {
-      setLoading(false)
+    return () => {
+      supabase.removeChannel(channel)
     }
-  }
+  }, [supabase])
 
-  async function updateStatus(id: number, status: Lead['status']) {
-    try {
-      const { error } = await supabase.from('leads').update({ status }).eq('id', id)
-      if (error) throw error
-      toast.success('Статус обновлен')
-      loadLeads()
-    } catch (error) {
-      console.error('Error updating status:', error)
-      toast.error('Ошибка обновления статуса')
+  async function updateStatus(id: number, status: LeadStatus) {
+    const prev = leads
+    setLeads((rows) =>
+      rows.map((row) => (row.id === id ? { ...row, status } : row)),
+    )
+    setSelected((current) =>
+      current && current.id === id ? { ...current, status } : current,
+    )
+
+    const { error } = await supabase.from('leads').update({ status }).eq('id', id)
+    if (error) {
+      setLeads(prev)
+      toast.error('Ошибка обновления')
+      return
     }
+    toast.success('Статус обновлён')
   }
 
-  const filteredLeads = filter === 'all' ? leads : leads.filter((lead) => lead.status === filter)
+  async function saveNotes() {
+    if (!selected) return
+    const handledAt = new Date().toISOString()
+    const prev = leads
+    setLeads((rows) =>
+      rows.map((row) =>
+        row.id === selected.id ? { ...row, notes, handled_at: handledAt } : row,
+      ),
+    )
 
-  const stats = {
-    all: leads.length,
-    new: leads.filter((l) => l.status === 'new').length,
-    contacted: leads.filter((l) => l.status === 'contacted').length,
-    completed: leads.filter((l) => l.status === 'completed').length,
-    cancelled: leads.filter((l) => l.status === 'cancelled').length,
+    const { error } = await supabase
+      .from('leads')
+      .update({ notes, handled_at: handledAt })
+      .eq('id', selected.id)
+    if (error) {
+      setLeads(prev)
+      toast.error('Ошибка сохранения')
+      return
+    }
+    toast.success('Заметки сохранены')
+    setSelected({ ...selected, notes, handled_at: handledAt })
   }
+
+  const filteredLeads = useMemo(
+    () =>
+      filter === 'all' ? leads : leads.filter((lead) => lead.status === filter),
+    [leads, filter],
+  )
+
+  const stats = useMemo(
+    () => ({
+      all: leads.length,
+      new: leads.filter((l) => l.status === 'new').length,
+      contacted: leads.filter((l) => l.status === 'contacted').length,
+      completed: leads.filter((l) => l.status === 'completed').length,
+      cancelled: leads.filter((l) => l.status === 'cancelled').length,
+    }),
+    [leads],
+  )
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-serif font-bold text-gray-900">Заявки</h1>
-        <p className="text-gray-600 mt-1">Управление заявками клиентов</p>
+        <p className="text-gray-600 mt-1">
+          Управление заявками клиентов (обновляется в реальном времени)
+        </p>
       </div>
 
-      {/* Stats & Filter */}
       <div className="flex flex-wrap gap-2">
-        {(['all', 'new', 'contacted', 'completed', 'cancelled'] as const).map((status) => (
-          <button
-            key={status}
-            onClick={() => setFilter(status)}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === status
-                ? 'bg-gray-900 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-            }`}
-          >
-            {status === 'all' ? 'Все' : statusLabels[status]} ({stats[status]})
-          </button>
-        ))}
+        {(['all', 'new', 'contacted', 'completed', 'cancelled'] as const).map(
+          (status) => (
+            <button
+              key={status}
+              onClick={() => setFilter(status)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                filter === status
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+              }`}
+            >
+              {status === 'all' ? 'Все' : STATUS_LABELS[status]} ({stats[status]})
+            </button>
+          ),
+        )}
       </div>
 
-      {/* Leads List */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -135,7 +194,14 @@ export default function LeadsPage() {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredLeads.map((lead) => (
-                <tr key={lead.id} className="hover:bg-gray-50">
+                <tr
+                  key={lead.id}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => {
+                    setSelected(lead)
+                    setNotes(lead.notes ?? '')
+                  }}
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4" />
@@ -165,25 +231,35 @@ export default function LeadsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="max-w-xs">
-                      <p className="text-sm text-gray-900">{lead.interest || 'Не указано'}</p>
+                      <p className="text-sm text-gray-900">
+                        {lead.interest || 'Не указано'}
+                      </p>
                       {lead.message && (
-                        <p className="text-sm text-gray-500 truncate mt-1">{lead.message}</p>
+                        <p className="text-sm text-gray-500 truncate mt-1">
+                          {lead.message}
+                        </p>
                       )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                        statusColors[lead.status]
+                        STATUS_COLORS[lead.status as LeadStatus] ??
+                        'bg-gray-100 text-gray-700'
                       }`}
                     >
-                      {statusLabels[lead.status]}
+                      {STATUS_LABELS[lead.status as LeadStatus] ?? lead.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <td
+                    className="px-6 py-4 whitespace-nowrap text-right"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <select
                       value={lead.status}
-                      onChange={(e) => updateStatus(lead.id, e.target.value as Lead['status'])}
+                      onChange={(e) =>
+                        updateStatus(lead.id, e.target.value as LeadStatus)
+                      }
                       className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                     >
                       <option value="new">Новая</option>
@@ -205,6 +281,96 @@ export default function LeadsPage() {
           </div>
         )}
       </div>
+
+      {selected && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Заявка #{selected.id}
+                </h2>
+                <button
+                  onClick={() => setSelected(null)}
+                  className="p-1 rounded hover:bg-gray-100"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-2 text-sm">
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-gray-500">Имя</span>
+                  <span className="col-span-2 font-medium">{selected.name}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-gray-500">Телефон</span>
+                  <a
+                    href={`tel:${selected.phone}`}
+                    className="col-span-2 font-medium text-primary"
+                  >
+                    {selected.phone}
+                  </a>
+                </div>
+                {selected.interest && (
+                  <div className="grid grid-cols-3 gap-2">
+                    <span className="text-gray-500">Интерес</span>
+                    <span className="col-span-2">{selected.interest}</span>
+                  </div>
+                )}
+                {selected.message && (
+                  <div className="grid grid-cols-3 gap-2">
+                    <span className="text-gray-500">Сообщение</span>
+                    <span className="col-span-2 whitespace-pre-wrap">
+                      {selected.message}
+                    </span>
+                  </div>
+                )}
+                {selected.source && (
+                  <div className="grid grid-cols-3 gap-2">
+                    <span className="text-gray-500">Источник</span>
+                    <span className="col-span-2">{selected.source}</span>
+                  </div>
+                )}
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-gray-500">Создано</span>
+                  <span className="col-span-2">
+                    {new Date(selected.created_at).toLocaleString('ru-RU')}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <MessageSquare className="w-4 h-4 inline mr-1" />
+                  Внутренние заметки
+                </label>
+                <textarea
+                  rows={4}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setSelected(null)}
+                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Закрыть
+                </button>
+                <button
+                  onClick={saveNotes}
+                  className="flex-1 px-4 py-2.5 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800"
+                >
+                  Сохранить заметки
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

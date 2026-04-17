@@ -1,51 +1,28 @@
 "use client"
 
-import { useState, useActionState } from "react"
+import { useActionState, useEffect, useRef, useState } from "react"
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
+import { submitLead, type SubmitLeadState } from "@/app/actions/submit-lead"
 
-interface FormState {
-  success: boolean
-  message: string
-}
-
-async function submitContactForm(prevState: FormState, formData: FormData): Promise<FormState> {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-
-  const name = formData.get("name") as string
-  const phone = formData.get("phone") as string
-
-  if (!name || !phone) {
-    return {
-      success: false,
-      message: "Пожалуйста, заполните обязательные поля",
-    }
-  }
-
-  // In production, this would send data to an API
-  console.log("[v0] Form submitted:", {
-    name,
-    phone,
-    interest: formData.get("interest"),
-    message: formData.get("message"),
-  })
-
-  return {
-    success: true,
-    message: "Спасибо! Флорист свяжется с вами в ближайшее время.",
-  }
-}
+const INITIAL_STATE: SubmitLeadState = { success: false, message: "" }
 
 export function ContactForm() {
-  const [state, formAction, isPending] = useActionState(submitContactForm, {
-    success: false,
-    message: "",
-  })
+  const [state, formAction, isPending] = useActionState(submitLead, INITIAL_STATE)
   const [touched, setTouched] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
+
+  useEffect(() => {
+    if (state.success && formRef.current) {
+      formRef.current.reset()
+    }
+  }, [state.success])
+
+  const fieldError = (key: string) => state.fieldErrors?.[key]
 
   return (
     <form
+      ref={formRef}
       action={formAction}
       className="bg-card p-5 sm:p-7 md:p-10 rounded-2xl shadow-xl shadow-black/8"
       aria-label="Форма обратной связи"
@@ -63,7 +40,11 @@ export function ContactForm() {
             placeholder="Как к вам обращаться?"
             className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border-2 border-border bg-background focus:border-primary focus:bg-card focus:shadow-[0_0_0_4px_rgba(200,159,159,0.2)] outline-none transition-all text-sm sm:text-base"
             aria-required="true"
+            aria-invalid={!!fieldError("name") || undefined}
           />
+          {fieldError("name") && (
+            <p className="mt-1 text-xs text-destructive">{fieldError("name")}</p>
+          )}
         </div>
 
         <div>
@@ -78,7 +59,11 @@ export function ContactForm() {
             placeholder="+7 (___) ___-__-__"
             className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border-2 border-border bg-background focus:border-primary focus:bg-card focus:shadow-[0_0_0_4px_rgba(200,159,159,0.2)] outline-none transition-all text-sm sm:text-base"
             aria-required="true"
+            aria-invalid={!!fieldError("phone") || undefined}
           />
+          {fieldError("phone") && (
+            <p className="mt-1 text-xs text-destructive">{fieldError("phone")}</p>
+          )}
         </div>
 
         <div>
@@ -111,7 +96,9 @@ export function ContactForm() {
           <div
             className={cn(
               "p-3 rounded-lg text-sm",
-              state.success ? "bg-secondary/20 text-secondary" : "bg-destructive/10 text-destructive"
+              state.success
+                ? "bg-secondary/20 text-secondary"
+                : "bg-destructive/10 text-destructive"
             )}
             role="alert"
           >

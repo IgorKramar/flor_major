@@ -1,32 +1,31 @@
-import { MetadataRoute } from "next"
+import type { MetadataRoute } from "next"
+import { getNavItems, getSiteSettings } from "@/lib/site-data"
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://flormajor-omsk.ru"
+export const revalidate = 300
 
-  return [
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const [settings, nav] = await Promise.all([getSiteSettings(), getNavItems()])
+  const baseUrl = (settings.canonical_url || "https://flormajor-omsk.ru").replace(/\/$/, "")
+  const now = new Date()
+
+  const entries: MetadataRoute.Sitemap = [
     {
-      url: baseUrl,
-      lastModified: new Date(),
+      url: `${baseUrl}/`,
+      lastModified: now,
       changeFrequency: "weekly",
       priority: 1,
     },
-    {
-      url: `${baseUrl}/#bouquets`,
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/#catalog`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/#contact`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
   ]
+
+  for (const item of nav) {
+    entries.push({
+      url: item.href.startsWith("http") ? item.href : `${baseUrl}/${item.href.replace(/^#?\//, '#')}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    })
+  }
+
+  return entries
 }
