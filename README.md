@@ -1,148 +1,142 @@
-# ФлорМажор — Enterprise Landing
+# ФлорМажор — лендинг и CMS
 
-Next.js 16 + Supabase лендинг для цветочного магазина «ФлорМажор» с полноценной CMS-админкой, нормализованной БД, RLS, Supabase Storage, Realtime и серверной отдачей контента.
+Next.js 16 + Supabase: публичный лендинг цветочного магазина **«ФлорМажор»** (Омск) с полноценной админкой, каталогом товаров без корзины (лиды), типографикой и оформлением секций из базы. Контент и тема отдаются с сервера (ISR), доступ к данным через RLS.
+
+**История изменений:** [CHANGELOG.md](CHANGELOG.md).
+
+**Права на код:** проприетарная лицензия, см. [LICENSE.md](LICENSE.md).
 
 ## Стек
 
-- **Next.js 16** (App Router, Server Components, Turbopack)
-- **React 19**
-- **TypeScript 5.7** (strict, генерация типов из Supabase)
+- **Next.js 16** (App Router, Server Components)
+- **React 19**, **TypeScript** (strict)
 - **Supabase** — Postgres, Auth, Storage, Realtime, Row-Level Security
-- **Zod** — валидация на клиенте и сервере
-- **Tailwind CSS v4** + CSS-переменные (темизация из БД)
-- **Radix UI**, `lucide-react`, `sonner`
-- **Vitest** — юнит-тесты для валидации
-- **ESLint** (flat config) + `typescript-eslint`
+- **Zod** — валидация форм и Server Actions
+- **Tailwind CSS v4** + CSS-переменные (тема из `theme_settings`, секции — из `landing_section_styles`)
+- **Radix UI**, **lucide-react**, **@phosphor-icons/react** (SSR), **sonner**
+- **Vitest** — тесты валидации
+- **ESLint** + **typescript-eslint**
 
-## Структура проекта
+## Публичный сайт
+
+| Маршрут | Описание |
+| ------- | -------- |
+| `/` | Главная: hero, избранные товары, категории, преимущества, контакты, форма лида |
+| `/catalog` | Каталог: фильтр по категории, поиск с подсветкой, сортировка по цене |
+| `/catalog/[slug]` | Карточка товара: галерея, описание, настройки из БД |
+| `/thanks` | Страница благодарности после отправки формы (если включена в админке) |
+| `/sitemap.xml` | Карта сайта, включая товары и каталог |
+
+## Админка (`/admin`)
+
+Основные разделы (после входа Supabase Auth и записи в `admin_users`):
+
+- **Обзор**, **Товары**, **Категории**, **Заявки** (в т.ч. удаление), **Hero**, **Преимущества**, **Навигация**
+- **Футер** — тексты, цвета, порядок блоков, соцсети (CRUD)
+- **Контакты** — данные для сайта + **оформление секции** «Контакты» на главной
+- **Страница каталога**, **Страница товара**, **Страница «Спасибо»** — тексты, флаги, типографика
+- **SEO**, **Брендинг** (глобальные цвета, шрифты, CSS), **Настройки**, **Аудит**, **Пользователи**
+
+В разделах **Hero**, **Товары**, **Категории**, **Преимущества**, **Контакты** есть блок **«Как выглядит блок на главной»**: фон (как в теме / цвет / градиент / картинка) и цвета секции через color picker — без ручного ввода HEX для обычных пользователей.
+
+Типографика по текстовым блокам настраивается **внутри соответствующих страниц** админки (не отдельным глобальным разделом).
+
+## Структура проекта (кратко)
 
 ```
 app/
-  admin/            — CMS-админка (hero, products, categories, leads,
-                      seo, appearance, footer, audit, users и т.д.)
-  api/revalidate/   — защищённый route handler для инвалидации кэша
-  actions/          — Server Actions (submit-lead)
-  layout.tsx        — SSR: meta, JSON-LD, динамические CSS-переменные
-  page.tsx          — SSR главной, собирается из БД
-  sitemap.ts        — sitemap из site_settings + nav_items
+  admin/           CMS: hero, products, categories, leads, footer, contacts,
+                   catalog-page, product-page, thanks, appearance, …
+  catalog/         Список и карточка товара
+  thanks/          Публичная страница «Спасибо»
+  actions/         Server Actions (лиды)
+  api/revalidate/  Инвалидация кэша по тегу
 components/
-  admin/            — AdminShell, Sidebar, ImageUpload, IconPicker
-  (секции)          — Header, HeroSection, ProductCarousel, …
+  admin/           Sidebar, ImageUpload, IconPicker, TypographyPanel,
+                   SectionSurfaceEditor, ColorPickerField, …
 lib/
-  supabase/         — браузерный, серверный и сервисный клиенты,
-                      middleware-хелпер
-  validation/       — Zod-схемы для всех сущностей
-  database.types.ts — сгенерированные типы Supabase
-  site-data.ts      — агрегатор данных для SSR
-  icons.ts          — маппинг Lucide-иконок
-proxy.ts            — Next.js proxy (auth, admin guard, maintenance)
-supabase/
-  migrations/       — 0001…0012 миграции (см. ниже)
-tests/              — Vitest
+  site-data.ts     Загрузка данных для SSR / ISR
+  landing-section-theme.ts  Сборка стилей секций главной
+  validation/      Zod-схемы
+  database.types.ts        Типы таблиц Supabase (в т.ч. вручную для новых таблиц)
+supabase/migrations/       SQL-миграции (применять по порядку в Supabase SQL Editor или CLI)
 ```
 
-## База данных
+## База данных и миграции
 
-Миграции лежат в `supabase/migrations/` и применяются последовательно:
+Файлы в `supabase/migrations/` нумеруются по порядку. Ранние миграции (`0001`–`0012`): админы, настройки сайта, контент, товары, лиды, RLS, аудит, Storage и т.д.
 
-| №    | Миграция                               | Что делает                                            |
-| ---- | -------------------------------------- | ----------------------------------------------------- |
-| 0001 | `admin_users_and_helpers`              | `admin_users`, `is_admin()`, `is_owner()`, `audit_log`, триггеры |
-| 0002 | `site_settings_and_theme`              | Singleton-таблицы: `site_settings`, `contact_info`, `theme_settings`, `footer_config` |
-| 0003 | `content_tables`                        | `categories`, `nav_items`, `features`, `social_links` |
-| 0004 | `hero_expansion`                        | Расширение `hero_settings` (accent, secondary CTA, overlay) |
-| 0005 | `products_normalization`                | `products.price_amount`, `slug`, `sort_order`, FK на категории |
-| 0006 | `leads_expansion_and_rate_limits`       | `leads.source/ip_hash/…`, `rate_limits`               |
-| 0007 | `rls_policies`                          | RLS для всех customisable-таблиц                       |
-| 0008 | `audit_triggers`                        | Аудит всех INSERT/UPDATE/DELETE по CMS-таблицам       |
-| 0009 | `seed_initial_content`                  | Посев стартового контента                             |
-| 0010 | `fix_function_search_path`              | Security hardening для функций                        |
-| 0011 | `rls_perf_cleanup`                      | Перф-оптимизация RLS (`(select auth.uid())`), индексы |
-| 0012 | `storage_media_bucket`                  | Public-bucket `media` + RLS для Supabase Storage      |
+Дополнительно (среди прочего):
 
-RLS-политика общая:
+| Файл (префикс) | Назначение (кратко) |
+| -------------- | ------------------- |
+| `0013`–`0014` | Первичный ключ аудита, Realtime для заявок |
+| `0015`–`0016` | Несколько фото у товара, текстовая цена |
+| `0017`–`0018` | Типографика в БД, realtime для связанных сущностей |
+| `0019` | Правки `nav_items` |
+| `0020` | Изображение и оверлей у категорий |
+| `0021` | Настройки страниц `/catalog` и `/catalog/[slug]` |
+| `0022` | Настройки `/thanks` |
+| `0023` | Футер: видимость и порядок блоков |
+| `0024` | Seed типографики для thanks |
+| `0025`–`0026` | Стили секций главной (`landing_section_styles`) |
 
-- `SELECT` — публичный, только `is_active = true` (где применимо).
-- `INSERT/UPDATE/DELETE` — только `public.is_admin()`.
-- `leads.INSERT` — публичный (через Server Action с rate limit).
+Точные имена файлов смотрите в каталоге `supabase/migrations/`.
 
 ## Роли и доступ
 
-Таблица `admin_users (user_id, role)` с ролями `owner | admin | editor`. Проверка через SQL-функции `public.is_admin()`, `public.is_owner()`. Страница `/admin/users` позволяет owner-ам управлять ролями.
-
-## CMS-админка
-
-Полный набор разделов:
-
-- **Dashboard** — статистика + Realtime по новым лидам
-- **Hero** — заголовок, акцент, фон (через Supabase Storage), CTA
-- **Products** — каталог (цена numeric, валюта, slug, категория, featured)
-- **Categories / Navigation / Features / Social** — CRUD + иконки
-- **Contacts** — телефон, email, адрес, координаты, рабочие часы
-- **Appearance** — цвета, типографика, border-radius, custom CSS
-- **SEO** — site name, description, keywords, OG image, canonical, theme-color, rating/reviews
-- **Footer** — бренд, tagline, copyright, цвета
-- **Settings** — analytics, maintenance mode
-- **Leads** — таблица + модалка, смена статуса, Realtime уведомления
-- **Audit** — журнал изменений
-- **Users** — управление админами
-
-## Валидация
-
-Все формы (и админка, и лид с лендинга) проходят через Zod-схемы из `lib/validation/schemas.ts`. Схемы покрыты Vitest-тестами в `tests/validation.test.ts`.
+Таблица `admin_users (user_id, role)` с ролями `owner | admin | editor`. Проверка в SQL: `public.is_admin()`, `public.is_owner()`. Страница `/admin/users` — для владельцев.
 
 ## Лиды
 
-Server Action `app/actions/submit-lead.ts`:
-
-1. Валидирует вход (`leadSchema`).
-2. Делает rate limit по SHA-256 хэшу IP (`rate_limits`).
-3. Вставляет в `leads` через сервисный клиент.
-4. Отправляет уведомление в Telegram (если заданы `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID`).
+Server Action отправки формы: валидация, rate limit, вставка в `leads`, опционально Telegram (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`). При активной странице «Спасибо» — редирект на `/thanks`.
 
 ## Инвалидация кэша
 
-- Секции SSR тянут данные через `lib/site-data.ts` с общим тегом `site-data` (revalidate 5 мин).
-- Админка после записи вызывает `lib/revalidate.ts` → `POST /api/revalidate` (требует JWT с `is_admin()`).
+Данные для публичных страниц собираются через `lib/site-data.ts` (тег `site-data`, revalidate порядка нескольких минут). После сохранения в админке вызывается `POST /api/revalidate` (см. `lib/revalidate.ts`).
 
 ## Переменные окружения
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=          # для Server Actions / admin client
-SUPABASE_PROJECT_REF=               # для scripts/generate-types.ts
-TELEGRAM_BOT_TOKEN=                 # опционально
-TELEGRAM_CHAT_ID=                   # опционально
-REVALIDATE_SECRET=                  # дополнительная защита /api/revalidate (опционально)
+SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_PROJECT_REF=              # для scripts/generate-types.ts
+TELEGRAM_BOT_TOKEN=                # опционально
+TELEGRAM_CHAT_ID=                  # опционально
+REVALIDATE_SECRET=                 # опционально, усиление /api/revalidate
 ```
 
 ## Скрипты
 
 ```bash
-pnpm dev            # Next.js dev
-pnpm build          # Production build (Turbopack)
-pnpm start          # Production start
-pnpm lint           # ESLint flat config
-pnpm typecheck      # tsc --noEmit
-pnpm test           # Vitest (валидация)
-pnpm types:generate # Регенерация lib/database.types.ts из Supabase
+pnpm dev             # разработка
+pnpm build           # production-сборка
+pnpm start           # запуск production
+pnpm lint
+pnpm typecheck       # tsc --noEmit
+pnpm test            # Vitest
+pnpm types:generate  # обновление lib/database.types.ts из Supabase
 ```
 
-## Создание первого админа
+## Первый админ
 
 1. Зарегистрируйтесь через `/admin/login`.
 2. В Supabase SQL Editor:
 
    ```sql
    insert into public.admin_users (user_id, role)
-   values ('<uuid-из-auth.users>', 'owner');
+   values ('<uuid из auth.users>', 'owner');
    ```
 
-3. Перелогиньтесь — доступна вся админка.
+3. Выйдите и войдите снова.
 
 ## Деплой
 
-1. Залить миграции: `supabase db push` или через MCP.
-2. Задать переменные окружения в Vercel / хосте.
-3. `pnpm build && pnpm start` или Vercel.
+1. Применить миграции к проекту Supabase (по порядку).
+2. Задать переменные окружения на хосте (например Vercel).
+3. `pnpm build` и деплой артефакта.
+
+---
+
+Права на исходный код проекта: [LICENSE.md](LICENSE.md). История изменений: [CHANGELOG.md](CHANGELOG.md).
