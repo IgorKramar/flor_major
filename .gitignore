@@ -1,4 +1,3 @@
-```
 # Dependencies
 node_modules/
 
@@ -9,6 +8,7 @@ dist/
 build/
 coverage/
 htmlcov/
+*.tsbuildinfo
 
 # Environment variables
 .env
@@ -54,4 +54,3 @@ out/
 
 # Supabase
 .supabase/
-```
