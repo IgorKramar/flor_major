@@ -7,9 +7,12 @@ import type {
   HeroSettings,
   NavItem,
   Product,
+  ProductImage,
+  ProductWithImages,
   SiteSettings,
   SocialLink,
   ThemeSettings,
+  TypographyRow,
 } from '@/lib/supabase'
 
 export const SITE_CACHE_TAG = 'site-data'
@@ -133,17 +136,72 @@ export async function getNavItems(): Promise<NavItem[]> {
   return (data ?? []) as NavItem[]
 }
 
-export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
+function sortImages(images: ProductImage[] | null | undefined): ProductImage[] {
+  if (!images || images.length === 0) return []
+  return [...images].sort((a, b) => {
+    if (a.is_primary && !b.is_primary) return -1
+    if (!a.is_primary && b.is_primary) return 1
+    if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
+    return a.id - b.id
+  })
+}
+
+function withImages(product: Product & { product_images?: ProductImage[] }): ProductWithImages {
+  const { product_images, ...rest } = product
+  return { ...rest, images: sortImages(product_images) }
+}
+
+export async function getFeaturedProducts(limit = 12): Promise<ProductWithImages[]> {
   const supabase = createAnonSupabase()
   const { data } = await supabase
     .from('products')
-    .select('*')
+    .select('*, product_images(*)')
     .eq('is_available', true)
-    .order('is_featured', { ascending: false })
+    .eq('is_featured', true)
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: false })
     .limit(limit)
-  return (data ?? []) as Product[]
+  const rows = (data ?? []) as Array<Product & { product_images?: ProductImage[] }>
+  return rows.map(withImages)
+}
+
+export async function getAllProducts(): Promise<ProductWithImages[]> {
+  const supabase = createAnonSupabase()
+  const { data } = await supabase
+    .from('products')
+    .select('*, product_images(*)')
+    .eq('is_available', true)
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: false })
+  const rows = (data ?? []) as Array<Product & { product_images?: ProductImage[] }>
+  return rows.map(withImages)
+}
+
+export async function getProductBySlug(slug: string): Promise<ProductWithImages | null> {
+  if (!slug) return null
+  const supabase = createAnonSupabase()
+  const { data, error } = await supabase
+    .from('products')
+    .select('*, product_images(*)')
+    .eq('is_available', true)
+    .eq('slug', slug)
+    .maybeSingle()
+  if (error) {
+    console.error('[site-data] product by slug error', error)
+    return null
+  }
+  if (!data) return null
+  return withImages(data as Product & { product_images?: ProductImage[] })
+}
+
+export async function getAllCategories(): Promise<Category[]> {
+  const supabase = createAnonSupabase()
+  const { data } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+  return (data ?? []) as Category[]
 }
 
 export async function getHomeCategories(): Promise<Category[]> {
@@ -198,33 +256,56 @@ export async function getFooterConfig(): Promise<FooterConfig> {
   )
 }
 
+export async function getTypography(): Promise<TypographyRow[]> {
+  const supabase = createAnonSupabase()
+  const { data, error } = await supabase.from('typography_settings').select('*')
+  if (error) {
+    console.error('[site-data] typography error', error)
+    return []
+  }
+  return (data ?? []) as TypographyRow[]
+}
+
 export type SiteData = {
   settings: SiteSettings
   contact: ContactInfo
   theme: ThemeSettings
   hero: HeroSettings | null
   nav: NavItem[]
-  products: Product[]
+  products: ProductWithImages[]
   categories: Category[]
   features: Feature[]
   socials: SocialLink[]
   footer: FooterConfig
+  typography: TypographyRow[]
 }
 
 export async function getAllSiteData(): Promise<SiteData> {
-  const [settings, contact, theme, hero, nav, products, categories, features, socials, footer] =
-    await Promise.all([
-      getSiteSettings(),
-      getContactInfo(),
-      getThemeSettings(),
-      getHeroSettings(),
-      getNavItems(),
-      getFeaturedProducts(),
-      getHomeCategories(),
-      getFeatures(),
-      getSocialLinks(),
-      getFooterConfig(),
-    ])
+  const [
+    settings,
+    contact,
+    theme,
+    hero,
+    nav,
+    products,
+    categories,
+    features,
+    socials,
+    footer,
+    typography,
+  ] = await Promise.all([
+    getSiteSettings(),
+    getContactInfo(),
+    getThemeSettings(),
+    getHeroSettings(),
+    getNavItems(),
+    getFeaturedProducts(),
+    getHomeCategories(),
+    getFeatures(),
+    getSocialLinks(),
+    getFooterConfig(),
+    getTypography(),
+  ])
 
   return {
     settings,
@@ -237,6 +318,7 @@ export async function getAllSiteData(): Promise<SiteData> {
     features,
     socials,
     footer,
+    typography,
   }
 }
 

@@ -27,12 +27,37 @@ export const leadSchema = z.object({
 })
 export type LeadInput = z.infer<typeof leadSchema>
 
+export const productImageSchema = z.object({
+  id: z.coerce.number().int().optional(),
+  url: z.string().trim().url('Некорректный URL'),
+  alt: z.string().trim().max(200).optional().nullable(),
+  sort_order: z.coerce.number().int().default(0),
+  is_primary: z.boolean().default(false),
+})
+export type ProductImageInput = z.infer<typeof productImageSchema>
+
 export const productSchema = z.object({
   title: z.string().trim().min(2).max(200),
   price_amount: z.coerce.number().min(0).max(10_000_000),
   price_currency: z.string().trim().min(1).max(8).default('RUB'),
+  price_display: z
+    .string()
+    .trim()
+    .max(120)
+    .optional()
+    .nullable()
+    .transform((v) => (v && v.length > 0 ? v : null)),
   description: optionalText,
-  image_url: z.string().trim().url().or(z.literal('')).transform((v) => v || null).nullable(),
+  /** @deprecated Используйте images[]; поле остаётся как зеркало первичной картинки. */
+  image_url: z
+    .string()
+    .trim()
+    .url()
+    .or(z.literal(''))
+    .transform((v) => v || null)
+    .nullable()
+    .optional(),
+  images: z.array(productImageSchema).default([]),
   badge: z.string().trim().max(40).optional().nullable(),
   category_id: z.coerce.number().int().positive().optional().nullable(),
   slug: z
@@ -144,3 +169,31 @@ export const footerSchema = z.object({
   background_color: hexColor,
   text_color: hexColor,
 })
+
+const typographyField = z
+  .string()
+  .trim()
+  .max(120)
+  .optional()
+  .nullable()
+  .transform((v) => (v && v.length > 0 ? v : null))
+
+export const typographySchema = z.object({
+  scope: z.string().trim().min(1).max(60),
+  element_key: z.string().trim().min(1).max(60),
+  font_family: typographyField,
+  font_size: typographyField,
+  font_weight: typographyField,
+  line_height: typographyField,
+  letter_spacing: typographyField,
+  text_transform: typographyField,
+  text_align: typographyField,
+  color: z
+    .string()
+    .trim()
+    .max(30)
+    .optional()
+    .nullable()
+    .transform((v) => (v && v.length > 0 ? v : null)),
+})
+export type TypographyInput = z.infer<typeof typographySchema>

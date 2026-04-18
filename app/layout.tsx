@@ -6,7 +6,9 @@ import {
   getContactInfo,
   getSiteSettings,
   getThemeSettings,
+  getTypography,
 } from "@/lib/site-data"
+import type { TypographyRow } from "@/lib/supabase"
 
 export const revalidate = 300
 
@@ -168,6 +170,33 @@ function buildJsonLd(
   }
 }
 
+const STATIC_FONT_FAMILIES = new Set<string>([
+  'Cormorant Garamond',
+  'Montserrat',
+])
+
+function buildGoogleFontsHref(typography: TypographyRow[]): string | null {
+  const byFamily = new Map<string, Set<string>>()
+  for (const row of typography) {
+    const family = row.font_family?.trim()
+    if (!family) continue
+    if (STATIC_FONT_FAMILIES.has(family)) continue
+    const weights = byFamily.get(family) ?? new Set<string>()
+    const weight = (row.font_weight ?? '400').trim() || '400'
+    weights.add(weight)
+    byFamily.set(family, weights)
+  }
+  if (byFamily.size === 0) return null
+
+  const families: string[] = []
+  for (const [family, weights] of byFamily.entries()) {
+    const sorted = Array.from(weights).sort((a, b) => Number(a) - Number(b))
+    const wParam = sorted.length > 0 ? `:wght@${sorted.join(';')}` : ''
+    families.push(`family=${encodeURIComponent(family).replace(/%20/g, '+')}${wParam}`)
+  }
+  return `https://fonts.googleapis.com/css2?${families.join('&')}&display=swap`
+}
+
 function themeCss(theme: Awaited<ReturnType<typeof getThemeSettings>>) {
   const custom = theme.custom_css ?? ""
   return `
@@ -188,13 +217,15 @@ function themeCss(theme: Awaited<ReturnType<typeof getThemeSettings>>) {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [settings, contact, theme] = await Promise.all([
+  const [settings, contact, theme, typography] = await Promise.all([
     getSiteSettings(),
     getContactInfo(),
     getThemeSettings(),
+    getTypography(),
   ])
 
   const jsonLd = buildJsonLd(settings, contact)
+  const googleFontsHref = buildGoogleFontsHref(typography)
 
   return (
     <html lang="ru" dir="ltr" className="scroll-smooth">
@@ -202,6 +233,13 @@ export default async function RootLayout({
         <style
           dangerouslySetInnerHTML={{ __html: themeCss(theme) }}
         />
+        {googleFontsHref ? (
+          <>
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+            <link rel="stylesheet" href={googleFontsHref} />
+          </>
+        ) : null}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

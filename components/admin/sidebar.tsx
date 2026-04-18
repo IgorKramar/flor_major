@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useVirtualKeyboard } from '@/lib/hooks/use-virtual-keyboard'
 import {
   LayoutDashboard,
   Package,
@@ -22,13 +23,14 @@ import {
   Globe,
   UsersRound,
   MoreHorizontal,
+  Type,
   X,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 
 const navigation = [
   { name: 'Обзор', href: '/admin', icon: LayoutDashboard },
-  { name: 'Букеты', href: '/admin/products', icon: Package },
+  { name: 'Товары', href: '/admin/products', icon: Package },
   { name: 'Категории', href: '/admin/categories', icon: Layers },
   { name: 'Заявки', href: '/admin/leads', icon: Users },
   { name: 'Hero', href: '/admin/hero', icon: ImageIcon },
@@ -39,6 +41,7 @@ const navigation = [
   { name: 'Контакты', href: '/admin/contacts', icon: FileText },
   { name: 'SEO', href: '/admin/seo', icon: FileSearch },
   { name: 'Стиль', href: '/admin/appearance', icon: Palette },
+  { name: 'Типографика', href: '/admin/typography', icon: Type },
   { name: 'Настройки', href: '/admin/settings', icon: Settings },
   { name: 'Аудит', href: '/admin/audit', icon: ShieldCheck },
   { name: 'Пользователи', href: '/admin/users', icon: UsersRound },
@@ -97,6 +100,7 @@ export function AdminMobileNav() {
   const pathname = usePathname()
   const { signOut } = useAuth()
   const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const { isOpen: keyboardOpen } = useVirtualKeyboard()
 
   const primaryItems = navigation.slice(0, PRIMARY_MOBILE_ITEMS)
   const secondaryItems = navigation.slice(PRIMARY_MOBILE_ITEMS)
@@ -105,6 +109,8 @@ export function AdminMobileNav() {
   useEffect(() => {
     setIsSheetOpen(false)
   }, [pathname])
+
+  if (keyboardOpen) return null
 
   useEffect(() => {
     if (!isSheetOpen) return

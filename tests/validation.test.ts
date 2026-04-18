@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   leadSchema,
   productSchema,
+  productImageSchema,
   categorySchema,
   navItemSchema,
   featureSchema,
@@ -11,6 +12,7 @@ import {
   themeSchema,
   siteSettingsSchema,
   footerSchema,
+  typographySchema,
 } from '@/lib/validation/schemas'
 
 describe('leadSchema', () => {
@@ -175,5 +177,85 @@ describe('footerSchema', () => {
       text_color: '#ffffff',
     })
     expect(result.success).toBe(true)
+  })
+})
+
+describe('productImageSchema', () => {
+  it('accepts a valid image entry', () => {
+    const result = productImageSchema.safeParse({
+      url: 'https://example.com/flower.jpg',
+      alt: 'Белые розы',
+      sort_order: 1,
+      is_primary: true,
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects invalid url', () => {
+    expect(
+      productImageSchema.safeParse({ url: 'not a url' }).success,
+    ).toBe(false)
+  })
+})
+
+describe('productSchema price_display + images', () => {
+  it('accepts string price_display and images array', () => {
+    const result = productSchema.safeParse({
+      title: 'Композиция «Солнце»',
+      price_amount: 0,
+      price_display: 'от 3 500 ₽',
+      images: [
+        { url: 'https://example.com/1.jpg', sort_order: 0, is_primary: true },
+        { url: 'https://example.com/2.jpg', sort_order: 1, is_primary: false },
+      ],
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.price_display).toBe('от 3 500 ₽')
+      expect(result.data.images).toHaveLength(2)
+    }
+  })
+
+  it('coerces empty price_display to null', () => {
+    const result = productSchema.safeParse({
+      title: 'Букет',
+      price_amount: 100,
+      price_display: '',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.price_display).toBeNull()
+    }
+  })
+})
+
+describe('typographySchema', () => {
+  it('accepts partial typography overrides', () => {
+    const result = typographySchema.safeParse({
+      scope: 'hero',
+      element_key: 'title',
+      font_family: 'Inter',
+      font_size: '3rem',
+      font_weight: '700',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('requires scope and element_key', () => {
+    expect(typographySchema.safeParse({}).success).toBe(false)
+  })
+
+  it('normalises empty strings to null', () => {
+    const result = typographySchema.safeParse({
+      scope: 'hero',
+      element_key: 'subtitle',
+      font_family: '',
+      color: '',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.font_family).toBeNull()
+      expect(result.data.color).toBeNull()
+    }
   })
 })

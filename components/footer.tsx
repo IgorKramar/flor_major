@@ -1,19 +1,25 @@
 import Link from "next/link"
 import { getIcon } from "@/lib/icons"
 import type { ContactInfo, FooterConfig, SocialLink } from "@/lib/supabase"
+import { typoStyle, type TypoMap } from "@/lib/typography"
 
 interface FooterProps {
   config: FooterConfig
   socials: SocialLink[]
   contact: ContactInfo
+  typography?: TypoMap
 }
 
-export function Footer({ config, socials, contact }: FooterProps) {
+export function Footer({ config, socials, contact, typography }: FooterProps) {
   const currentYear = new Date().getFullYear()
   const copyright = (config.copyright_template || '').replace(
     '{year}',
     String(currentYear)
   )
+  const brandStyle = typoStyle(typography, 'footer', 'brand')
+  const taglineStyle = typoStyle(typography, 'footer', 'tagline')
+  const linkStyle = typoStyle(typography, 'footer', 'link')
+  const copyrightStyle = typoStyle(typography, 'footer', 'copyright')
 
   return (
     <footer
@@ -39,12 +45,15 @@ export function Footer({ config, socials, contact }: FooterProps) {
       />
 
       <div className="container mx-auto px-4 sm:px-6 text-center relative z-10">
-        <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white mb-3 sm:mb-4">
+        <h2
+          className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white mb-3 sm:mb-4"
+          style={brandStyle}
+        >
           {config.brand_display}
         </h2>
 
         {config.tagline && (
-          <p className="text-white/60 text-xs sm:text-sm mb-8 sm:mb-10">
+          <p className="text-white/60 text-xs sm:text-sm mb-8 sm:mb-10" style={taglineStyle}>
             {config.tagline}
           </p>
         )}
@@ -72,7 +81,10 @@ export function Footer({ config, socials, contact }: FooterProps) {
           </nav>
         )}
 
-        <div className="flex flex-wrap justify-center gap-y-2 gap-x-4 sm:gap-x-6 md:gap-x-10 mb-8 sm:mb-10 text-xs sm:text-sm text-white/70 max-w-full">
+        <div
+          className="flex flex-wrap justify-center gap-y-2 gap-x-4 sm:gap-x-6 md:gap-x-10 mb-8 sm:mb-10 text-xs sm:text-sm text-white/70 max-w-full"
+          style={linkStyle}
+        >
           {contact.phone_primary && (
             <a
               href={`tel:${contact.phone_primary.replace(/[^\d+]/g, '')}`}
@@ -105,7 +117,9 @@ export function Footer({ config, socials, contact }: FooterProps) {
         </div>
 
         <div className="border-t border-white/10 pt-6 sm:pt-8">
-          <p className="text-xs text-white/50">{copyright}</p>
+          <p className="text-xs text-white/50" style={copyrightStyle}>
+            {copyright}
+          </p>
           {contact.working_hours && (
             <p className="text-xs text-white/40 mt-2">
               Режим работы: {contact.working_hours}

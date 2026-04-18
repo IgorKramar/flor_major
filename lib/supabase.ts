@@ -29,6 +29,7 @@ export type {
 } from './database.types'
 
 export type Product = import('./database.types').Tables<'products'>
+export type ProductImage = import('./database.types').Tables<'product_images'>
 export type Lead = import('./database.types').Tables<'leads'>
 export type HeroSettings = import('./database.types').Tables<'hero_settings'>
 export type SiteSettings = import('./database.types').Tables<'site_settings'>
@@ -39,3 +40,6 @@ export type Category = import('./database.types').Tables<'categories'>
 export type NavItem = import('./database.types').Tables<'nav_items'>
 export type Feature = import('./database.types').Tables<'features'>
 export type SocialLink = import('./database.types').Tables<'social_links'>
+export type TypographyRow = import('./database.types').Tables<'typography_settings'>
+
+export type ProductWithImages = Product & { images: ProductImage[] }

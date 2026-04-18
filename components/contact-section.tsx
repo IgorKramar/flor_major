@@ -1,6 +1,7 @@
 import { MapPin, Phone, Mail } from "lucide-react"
 import { ContactForm } from "./contact-form"
 import type { ContactInfo } from "@/lib/supabase"
+import { typoStyle, type TypoMap } from "@/lib/typography"
 
 function telHref(raw: string): string {
   const digits = raw.replace(/[^\d+]/g, "")
@@ -11,13 +12,19 @@ interface ContactSectionProps {
   contact: ContactInfo
   heading?: string
   subheading?: string
+  typography?: TypoMap
 }
 
 export function ContactSection({
   contact,
   heading = "Свяжитесь с нами",
   subheading = "Поможем подобрать идеальный букет или подарок по случаю.",
+  typography,
 }: ContactSectionProps) {
+  const headingStyle = typoStyle(typography, 'contact', 'heading')
+  const subheadingStyle = typoStyle(typography, 'contact', 'subheading')
+  const labelStyle = typoStyle(typography, 'contact', 'label')
+  const valueStyle = typoStyle(typography, 'contact', 'value')
   return (
     <section
       id="contact"
@@ -34,10 +41,14 @@ export function ContactSection({
             <h2
               id="contact-heading"
               className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-3 sm:mb-4"
+              style={headingStyle}
             >
               {heading}
             </h2>
-            <p className="text-muted-foreground text-base sm:text-lg mb-6 sm:mb-8">
+            <p
+              className="text-muted-foreground text-base sm:text-lg mb-6 sm:mb-8"
+              style={subheadingStyle}
+            >
               {subheading}
             </p>
 
@@ -49,8 +60,13 @@ export function ContactSection({
                       <MapPin className="w-5 h-5" aria-hidden="true" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-medium mb-1">Адрес</h3>
-                      <p className="text-muted-foreground text-sm sm:text-base break-words">
+                      <h3 className="font-medium mb-1" style={labelStyle}>
+                        Адрес
+                      </h3>
+                      <p
+                        className="text-muted-foreground text-sm sm:text-base break-words"
+                        style={valueStyle}
+                      >
                         {contact.address}
                         {contact.working_hours && (
                           <>
@@ -70,8 +86,13 @@ export function ContactSection({
                     <Phone className="w-5 h-5" aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-medium mb-1">Телефон</h3>
-                    <p className="text-muted-foreground text-sm sm:text-base break-words">
+                    <h3 className="font-medium mb-1" style={labelStyle}>
+                      Телефон
+                    </h3>
+                    <p
+                      className="text-muted-foreground text-sm sm:text-base break-words"
+                      style={valueStyle}
+                    >
                       <a
                         href={telHref(contact.phone_primary)}
                         className="hover:text-primary transition-colors"
@@ -100,8 +121,13 @@ export function ContactSection({
                     <Mail className="w-5 h-5" aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-medium mb-1">Email & Мессенджеры</h3>
-                    <p className="text-muted-foreground text-sm sm:text-base break-words">
+                    <h3 className="font-medium mb-1" style={labelStyle}>
+                      Email & Мессенджеры
+                    </h3>
+                    <p
+                      className="text-muted-foreground text-sm sm:text-base break-words"
+                      style={valueStyle}
+                    >
                       {contact.email && (
                         <a
                           href={`mailto:${contact.email}`}

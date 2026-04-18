@@ -374,6 +374,7 @@ export type Database = {
           price: string | null
           price_amount: number | null
           price_currency: string
+          price_display: string | null
           slug: string | null
           sort_order: number
           title: string
@@ -392,6 +393,7 @@ export type Database = {
           price?: string | null
           price_amount?: number | null
           price_currency?: string
+          price_display?: string | null
           slug?: string | null
           sort_order?: number
           title: string
@@ -410,10 +412,94 @@ export type Database = {
           price?: string | null
           price_amount?: number | null
           price_currency?: string
+          price_display?: string | null
           slug?: string | null
           sort_order?: number
           title?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      product_images: {
+        Row: {
+          alt: string | null
+          created_at: string
+          id: number
+          is_primary: boolean
+          product_id: number
+          sort_order: number
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          alt?: string | null
+          created_at?: string
+          id?: number
+          is_primary?: boolean
+          product_id: number
+          sort_order?: number
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          alt?: string | null
+          created_at?: string
+          id?: number
+          is_primary?: boolean
+          product_id?: number
+          sort_order?: number
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      typography_settings: {
+        Row: {
+          color: string | null
+          element_key: string
+          font_family: string | null
+          font_size: string | null
+          font_weight: string | null
+          letter_spacing: string | null
+          line_height: string | null
+          scope: string
+          text_align: string | null
+          text_transform: string | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          element_key: string
+          font_family?: string | null
+          font_size?: string | null
+          font_weight?: string | null
+          letter_spacing?: string | null
+          line_height?: string | null
+          scope: string
+          text_align?: string | null
+          text_transform?: string | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          element_key?: string
+          font_family?: string | null
+          font_size?: string | null
+          font_weight?: string | null
+          letter_spacing?: string | null
+          line_height?: string | null
+          scope?: string
+          text_align?: string | null
+          text_transform?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

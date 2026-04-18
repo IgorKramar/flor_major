@@ -1,25 +1,33 @@
 import Image from "next/image"
 import Link from "next/link"
 import type { HeroSettings } from "@/lib/supabase"
+import { typoStyle, type TypoMap } from "@/lib/typography"
 
 interface HeroSectionProps {
   hero: HeroSettings | null
+  typography?: TypoMap
 }
 
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1563241527-3004b7be0fee?w=1200&q=80"
 
-export function HeroSection({ hero }: HeroSectionProps) {
+export function HeroSection({ hero, typography }: HeroSectionProps) {
   const title = hero?.title || "Цветы, которые говорят о чувствах"
   const subtitle =
     hero?.subtitle ||
     "Свежие букеты и авторские композиции в Омске. Доставка круглосуточно."
   const ctaText = hero?.cta_text || "Выбрать букет"
-  const ctaLink = hero?.cta_link || "#bouquets"
+  const ctaLink = hero?.cta_link || "#products"
   const secondaryCtaText = hero?.secondary_cta_text || "Связаться с нами"
   const secondaryCtaLink = hero?.secondary_cta_link || "#contact"
   const image = hero?.background_image || FALLBACK_IMAGE
   const alt = hero?.alt_text || "Букет цветов ФЛОРМАЖОР — свежие цветы в Омске"
+
+  const titleStyle = typoStyle(typography, 'hero', 'title')
+  const accentStyle = typoStyle(typography, 'hero', 'accent')
+  const subtitleStyle = typoStyle(typography, 'hero', 'subtitle')
+  const ctaStyle = typoStyle(typography, 'hero', 'cta')
+  const secondaryCtaStyle = typoStyle(typography, 'hero', 'secondary_cta')
 
   return (
     <section
@@ -46,21 +54,29 @@ export function HeroSection({ hero }: HeroSectionProps) {
             <h1
               id="hero-heading"
               className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl italic leading-tight text-balance"
+              style={titleStyle}
             >
               {title}
             </h1>
             {hero?.headline_accent && (
-              <p className="font-heading italic text-xl sm:text-2xl md:text-3xl text-primary">
+              <p
+                className="font-heading italic text-xl sm:text-2xl md:text-3xl text-primary"
+                style={accentStyle}
+              >
                 {hero.headline_accent}
               </p>
             )}
-            <p className="text-muted-foreground text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-lg mx-auto md:mx-0">
+            <p
+              className="text-muted-foreground text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-lg mx-auto md:mx-0"
+              style={subtitleStyle}
+            >
               {subtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 justify-center md:justify-start">
               <Link
                 href={ctaLink}
                 className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 bg-primary text-primary-foreground rounded-full font-medium uppercase tracking-wide text-xs hover:bg-transparent hover:text-primary border-2 border-primary transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/30"
+                style={ctaStyle}
               >
                 {ctaText}
               </Link>
@@ -68,6 +84,7 @@ export function HeroSection({ hero }: HeroSectionProps) {
                 <Link
                   href={secondaryCtaLink}
                   className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 bg-transparent text-foreground rounded-full font-medium uppercase tracking-wide text-xs border-2 border-border hover:bg-accent transition-all duration-300 hover:-translate-y-0.5"
+                  style={secondaryCtaStyle}
                 >
                   {secondaryCtaText}
                 </Link>
