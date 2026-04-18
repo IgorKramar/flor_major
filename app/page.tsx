@@ -6,6 +6,7 @@ import { FeaturesSection } from "@/components/features-section"
 import { ContactSection } from "@/components/contact-section"
 import { Footer } from "@/components/footer"
 import { getAllSiteData } from "@/lib/site-data"
+import { buildSectionThemeStyle } from "@/lib/landing-section-theme"
 import { buildTypoMap } from "@/lib/typography"
 
 export const revalidate = 300
@@ -18,11 +19,32 @@ export default async function HomePage() {
     <>
       <Header brand={data.settings.site_name} navItems={data.nav} />
       <main id="main-content">
-        <HeroSection hero={data.hero} typography={typography} />
-        <ProductCarousel products={data.products} typography={typography} />
-        <CatalogSection categories={data.categories} typography={typography} />
-        <FeaturesSection features={data.features} typography={typography} />
-        <ContactSection contact={data.contact} typography={typography} />
+        <HeroSection
+          hero={data.hero}
+          typography={typography}
+          themeStyle={buildSectionThemeStyle(data.landingSections.hero ?? null)}
+        />
+        <ProductCarousel
+          products={data.products}
+          typography={typography}
+          themeStyle={buildSectionThemeStyle(data.landingSections.products ?? null)}
+        />
+        <CatalogSection
+          categories={data.categories}
+          typography={typography}
+          themeStyle={buildSectionThemeStyle(data.landingSections.categories ?? null)}
+        />
+        <FeaturesSection
+          features={data.features}
+          typography={typography}
+          themeStyle={buildSectionThemeStyle(data.landingSections.features ?? null)}
+        />
+        <ContactSection
+          contact={data.contact}
+          typography={typography}
+          thanksActive={data.thanksPage.is_active}
+          themeStyle={buildSectionThemeStyle(data.landingSections.contact ?? null)}
+        />
       </main>
       <Footer
         config={data.footer}

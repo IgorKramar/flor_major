@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react"
 import { getIcon } from "@/lib/icons"
 import type { Feature } from "@/lib/supabase"
 import { typoStyle, type TypoMap } from "@/lib/typography"
@@ -7,6 +8,7 @@ interface FeaturesSectionProps {
   heading?: string
   subheading?: string
   typography?: TypoMap
+  themeStyle?: CSSProperties
 }
 
 export function FeaturesSection({
@@ -14,6 +16,7 @@ export function FeaturesSection({
   heading = "Почему выбирают нас",
   subheading,
   typography,
+  themeStyle,
 }: FeaturesSectionProps) {
   if (features.length === 0) return null
 
@@ -26,6 +29,7 @@ export function FeaturesSection({
     <section
       id="features"
       className="py-20 sm:py-24 md:py-28 bg-card"
+      style={themeStyle}
       aria-labelledby="features-heading"
     >
       <div className="container mx-auto px-4 sm:px-6">

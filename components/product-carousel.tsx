@@ -14,6 +14,7 @@ interface ProductCarouselProps {
   heading?: string
   subheading?: string
   typography?: TypoMap
+  themeStyle?: CSSProperties
 }
 
 const PLACEHOLDER_IMAGE =
@@ -51,6 +52,7 @@ export function ProductCarousel({
   heading = "Наши товары",
   subheading = "Созданы с любовью и вниманием к деталям",
   typography,
+  themeStyle,
 }: ProductCarouselProps) {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -114,6 +116,7 @@ export function ProductCarousel({
     <section
       id="products"
       className="py-20 sm:py-24 md:py-28 lg:py-32 bg-card"
+      style={themeStyle}
       aria-labelledby="products-heading"
     >
       <div className="container mx-auto px-4 sm:px-6">

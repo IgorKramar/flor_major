@@ -41,5 +41,9 @@ export type NavItem = import('./database.types').Tables<'nav_items'>
 export type Feature = import('./database.types').Tables<'features'>
 export type SocialLink = import('./database.types').Tables<'social_links'>
 export type TypographyRow = import('./database.types').Tables<'typography_settings'>
+export type CatalogPageSettings = import('./database.types').Tables<'catalog_page_settings'>
+export type ProductPageSettings = import('./database.types').Tables<'product_page_settings'>
+export type ThanksPageSettings = import('./database.types').Tables<'thanks_page_settings'>
+export type LandingSectionStyle = import('./database.types').Tables<'landing_section_styles'>
 
 export type ProductWithImages = Product & { images: ProductImage[] }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Mail, Phone, Clock, MessageSquare, X } from 'lucide-react'
+import { Mail, Phone, Clock, MessageSquare, X, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/lib/auth-context'
 import type { Tables } from '@/lib/database.types'
@@ -93,6 +93,21 @@ export default function LeadsPage() {
       return
     }
     toast.success('Статус обновлён')
+  }
+
+  async function deleteLead(id: number) {
+    if (!confirm('Удалить заявку навсегда? Это действие нельзя отменить.')) return
+    const prev = leads
+    setLeads((rows) => rows.filter((row) => row.id !== id))
+    setSelected((current) => (current && current.id === id ? null : current))
+
+    const { error } = await supabase.from('leads').delete().eq('id', id)
+    if (error) {
+      setLeads(prev)
+      toast.error('Ошибка удаления')
+      return
+    }
+    toast.success('Заявка удалена')
   }
 
   async function saveNotes() {
@@ -220,7 +235,7 @@ export default function LeadsPage() {
               </div>
             </div>
             <div
-              className="mt-3 pt-3 border-t border-gray-100"
+              className="mt-3 pt-3 border-t border-gray-100 flex gap-2"
               onClick={(e) => e.stopPropagation()}
             >
               <select
@@ -228,13 +243,21 @@ export default function LeadsPage() {
                 onChange={(e) =>
                   updateStatus(lead.id, e.target.value as LeadStatus)
                 }
-                className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
               >
                 <option value="new">Новая</option>
                 <option value="contacted">В работе</option>
                 <option value="completed">Завершена</option>
                 <option value="cancelled">Отменена</option>
               </select>
+              <button
+                type="button"
+                onClick={() => deleteLead(lead.id)}
+                className="p-2 text-red-600 hover:bg-red-50 rounded-lg border border-red-200"
+                aria-label="Удалить заявку"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
           </button>
         ))}
@@ -332,18 +355,29 @@ export default function LeadsPage() {
                     className="px-6 py-4 whitespace-nowrap text-right"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <select
-                      value={lead.status}
-                      onChange={(e) =>
-                        updateStatus(lead.id, e.target.value as LeadStatus)
-                      }
-                      className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                    >
-                      <option value="new">Новая</option>
-                      <option value="contacted">В работе</option>
-                      <option value="completed">Завершена</option>
-                      <option value="cancelled">Отменена</option>
-                    </select>
+                    <div className="flex justify-end items-center gap-2">
+                      <select
+                        value={lead.status}
+                        onChange={(e) =>
+                          updateStatus(lead.id, e.target.value as LeadStatus)
+                        }
+                        className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                      >
+                        <option value="new">Новая</option>
+                        <option value="contacted">В работе</option>
+                        <option value="completed">Завершена</option>
+                        <option value="cancelled">Отменена</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => deleteLead(lead.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                        aria-label="Удалить заявку"
+                        title="Удалить навсегда"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -444,6 +478,15 @@ export default function LeadsPage() {
                   Сохранить заметки
                 </button>
               </div>
+
+              <button
+                type="button"
+                onClick={() => deleteLead(selected.id)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-red-200 text-red-600 rounded-lg font-medium hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4" />
+                Удалить заявку навсегда
+              </button>
             </div>
           </div>
         </div>

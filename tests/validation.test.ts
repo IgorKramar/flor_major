@@ -13,6 +13,7 @@ import {
   siteSettingsSchema,
   footerSchema,
   typographySchema,
+  landingSectionStyleSchema,
 } from '@/lib/validation/schemas'
 
 describe('leadSchema', () => {
@@ -257,5 +258,31 @@ describe('typographySchema', () => {
       expect(result.data.font_family).toBeNull()
       expect(result.data.color).toBeNull()
     }
+  })
+})
+
+describe('landingSectionStyleSchema', () => {
+  it('applies defaults for minimal payload', () => {
+    const result = landingSectionStyleSchema.safeParse({ section_key: 'hero' })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.background_mode).toBe('default')
+    }
+  })
+
+  it('accepts null color fields with default background mode', () => {
+    const result = landingSectionStyleSchema.safeParse({
+      section_key: 'contact',
+      background_mode: 'default',
+      foreground: null,
+      background_gradient_from_hex: null,
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects unknown section_key', () => {
+    expect(
+      landingSectionStyleSchema.safeParse({ section_key: 'unknown' }).success,
+    ).toBe(false)
   })
 })

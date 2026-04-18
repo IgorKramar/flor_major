@@ -17,13 +17,14 @@ import {
   Layers,
   ListTree,
   Sparkles,
-  Link2,
   FileSearch,
   ShieldCheck,
   Globe,
   UsersRound,
   MoreHorizontal,
-  Type,
+  BookOpen,
+  PackageOpen,
+  Heart,
   X,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
@@ -36,12 +37,13 @@ const navigation = [
   { name: 'Hero', href: '/admin/hero', icon: ImageIcon },
   { name: 'Преимущества', href: '/admin/features', icon: Sparkles },
   { name: 'Навигация', href: '/admin/navigation', icon: ListTree },
-  { name: 'Соцсети', href: '/admin/social', icon: Link2 },
   { name: 'Футер', href: '/admin/footer', icon: Globe },
   { name: 'Контакты', href: '/admin/contacts', icon: FileText },
+  { name: 'Страница каталога', href: '/admin/catalog-page', icon: BookOpen },
+  { name: 'Страница товара', href: '/admin/product-page', icon: PackageOpen },
+  { name: 'Страница «Спасибо»', href: '/admin/thanks', icon: Heart },
   { name: 'SEO', href: '/admin/seo', icon: FileSearch },
-  { name: 'Стиль', href: '/admin/appearance', icon: Palette },
-  { name: 'Типографика', href: '/admin/typography', icon: Type },
+  { name: 'Брендинг', href: '/admin/appearance', icon: Palette },
   { name: 'Настройки', href: '/admin/settings', icon: Settings },
   { name: 'Аудит', href: '/admin/audit', icon: ShieldCheck },
   { name: 'Пользователи', href: '/admin/users', icon: UsersRound },
@@ -110,8 +112,6 @@ export function AdminMobileNav() {
     setIsSheetOpen(false)
   }, [pathname])
 
-  if (keyboardOpen) return null
-
   useEffect(() => {
     if (!isSheetOpen) return
     const originalOverflow = document.body.style.overflow
@@ -120,6 +120,8 @@ export function AdminMobileNav() {
       document.body.style.overflow = originalOverflow
     }
   }, [isSheetOpen])
+
+  if (keyboardOpen) return null
 
   return (
     <>

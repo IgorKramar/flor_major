@@ -11,6 +11,10 @@ import {
   ProductImagesEditor,
   type EditorImage,
 } from '@/components/admin/product-images-editor'
+import { SectionSurfaceEditor } from '@/components/admin/section-surface-editor'
+import { TypographyPanel } from '@/components/admin/typography-panel'
+import { useTypographyEditor } from '@/lib/hooks/use-typography-editor'
+import { TYPO_SCOPES } from '@/lib/typography-registry'
 import { revalidateSiteCache } from '@/lib/revalidate'
 import type { Tables } from '@/lib/database.types'
 import { productSchema, type ProductImageInput } from '@/lib/validation/schemas'
@@ -63,6 +67,10 @@ function formatPrice(product: Product): string {
   return product.price ?? ''
 }
 
+const PRODUCTS_SCOPE = TYPO_SCOPES.find((s) => s.scope === 'products')
+const PRODUCTS_TYPO_KEYS =
+  PRODUCTS_SCOPE?.elements.map((el) => el.key) ?? []
+
 export default function ProductsPage() {
   const { supabase } = useAuth()
   const searchParams = useSearchParams()
@@ -74,6 +82,34 @@ export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [formData, setFormData] = useState<FormState>(EMPTY_FORM)
   const [submitting, setSubmitting] = useState(false)
+  const [savingTypo, setSavingTypo] = useState(false)
+
+  const typoEditor = useTypographyEditor({
+    scope: 'products',
+    elementKeys: PRODUCTS_TYPO_KEYS,
+  })
+
+  async function handleSaveTypography() {
+    setSavingTypo(true)
+    try {
+      const result = await typoEditor.save()
+      if (result.errors.length) {
+        result.errors.forEach((m) => toast.error(m))
+        return
+      }
+      if (result.saved === 0) {
+        toast.info('Нет изменений')
+        return
+      }
+      toast.success(`Сохранено блоков: ${result.saved}`)
+      await revalidateSiteCache('/')
+    } catch (error) {
+      console.error(error)
+      toast.error('Ошибка сохранения типографики')
+    } finally {
+      setSavingTypo(false)
+    }
+  }
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -334,6 +370,40 @@ export default function ProductsPage() {
           className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
         />
       </div>
+
+      <SectionSurfaceEditor sectionKey="products" />
+
+      {PRODUCTS_SCOPE && !typoEditor.loading && (
+        <details className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+          <summary className="cursor-pointer font-semibold text-gray-900">
+            Типографика блока «Товары»
+            {typoEditor.dirtyCount > 0 && (
+              <span className="ml-2 text-xs text-primary">● изменено ({typoEditor.dirtyCount})</span>
+            )}
+          </summary>
+          <div className="mt-4 space-y-3">
+            {PRODUCTS_SCOPE.elements.map((element) => (
+              <TypographyPanel
+                key={element.key}
+                editor={typoEditor}
+                elementKey={element.key}
+                label={element.label}
+                previewText={element.sampleText}
+              />
+            ))}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={handleSaveTypography}
+                disabled={savingTypo || typoEditor.dirtyCount === 0}
+                className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                {savingTypo ? 'Сохранение…' : 'Сохранить типографику'}
+              </button>
+            </div>
+          </div>
+        </details>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProducts.map((product) => {

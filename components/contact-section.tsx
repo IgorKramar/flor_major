@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react"
 import { MapPin, Phone, Mail } from "lucide-react"
 import { ContactForm } from "./contact-form"
 import type { ContactInfo } from "@/lib/supabase"
@@ -13,6 +14,8 @@ interface ContactSectionProps {
   heading?: string
   subheading?: string
   typography?: TypoMap
+  thanksActive?: boolean
+  themeStyle?: CSSProperties
 }
 
 export function ContactSection({
@@ -20,6 +23,8 @@ export function ContactSection({
   heading = "Свяжитесь с нами",
   subheading = "Поможем подобрать идеальный букет или подарок по случаю.",
   typography,
+  thanksActive = false,
+  themeStyle,
 }: ContactSectionProps) {
   const headingStyle = typoStyle(typography, 'contact', 'heading')
   const subheadingStyle = typoStyle(typography, 'contact', 'subheading')
@@ -32,6 +37,7 @@ export function ContactSection({
       style={{
         background:
           "linear-gradient(140deg, var(--accent) 0%, var(--background) 100%)",
+        ...themeStyle,
       }}
       aria-labelledby="contact-heading"
     >
@@ -170,7 +176,7 @@ export function ContactSection({
           </div>
 
           <div>
-            <ContactForm />
+            <ContactForm thanksActive={thanksActive} />
           </div>
         </div>
       </div>

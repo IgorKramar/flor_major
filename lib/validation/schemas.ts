@@ -10,6 +10,7 @@ const optionalUrl = z
   .or(z.literal(''))
   .transform((v) => (v === '' ? null : v))
   .nullable()
+  .optional()
 
 const optionalText = z.string().trim().max(5000).optional().nullable()
 
@@ -77,6 +78,10 @@ export const categorySchema = z.object({
   name: z.string().trim().min(2).max(120),
   description: optionalText,
   icon_name: z.string().trim().max(40).optional().nullable(),
+  image_url: optionalUrl,
+  image_alt: z.string().trim().max(200).optional().nullable(),
+  overlay_opacity: z.coerce.number().min(0).max(1).default(0.55),
+  show_icon_over_image: z.boolean().default(false),
   sort_order: z.coerce.number().int().default(0),
   show_on_home: z.boolean().default(true),
   is_active: z.boolean().default(true),
@@ -162,13 +167,62 @@ export const siteSettingsSchema = z.object({
   json_ld_override: z.unknown().optional().nullable(),
 })
 
+export const FOOTER_BLOCK_IDS = ['brand', 'contacts', 'socials'] as const
+export type FooterBlockId = (typeof FOOTER_BLOCK_IDS)[number]
+
 export const footerSchema = z.object({
   brand_display: z.string().trim().min(1).max(120),
   tagline: z.string().trim().max(300),
   copyright_template: z.string().trim().max(300),
   background_color: hexColor,
   text_color: hexColor,
+  show_brand: z.boolean().default(true),
+  show_contacts: z.boolean().default(true),
+  show_socials: z.boolean().default(true),
+  block_order: z
+    .array(z.enum(FOOTER_BLOCK_IDS))
+    .default(['brand', 'contacts', 'socials']),
 })
+
+export const catalogPageSettingsSchema = z.object({
+  heading: z.string().trim().min(1).max(200),
+  subheading: z.string().trim().max(500),
+  search_placeholder: z.string().trim().max(200),
+  filter_label: z.string().trim().max(120),
+  sort_label: z.string().trim().max(120),
+  sort_default_label: z.string().trim().max(120),
+  sort_asc_label: z.string().trim().max(120),
+  sort_desc_label: z.string().trim().max(120),
+  empty_state_text: z.string().trim().max(500),
+  cta_card_text: z.string().trim().max(80),
+  show_breadcrumbs: z.boolean().default(true),
+})
+export type CatalogPageSettingsInput = z.infer<typeof catalogPageSettingsSchema>
+
+export const productPageSettingsSchema = z.object({
+  show_breadcrumbs: z.boolean().default(true),
+  show_category_meta: z.boolean().default(true),
+  cta_primary_text: z.string().trim().min(1).max(80),
+  cta_primary_link: z.string().trim().min(1).max(200),
+  show_phone_cta: z.boolean().default(true),
+  show_similar_products: z.boolean().default(false),
+  similar_products_heading: z.string().trim().max(200),
+  similar_products_limit: z.coerce.number().int().min(1).max(12).default(4),
+})
+export type ProductPageSettingsInput = z.infer<typeof productPageSettingsSchema>
+
+export const thanksPageSettingsSchema = z.object({
+  is_active: z.boolean().default(true),
+  heading: z.string().trim().min(1).max(200),
+  subheading: z.string().trim().max(300),
+  body_text: z.string().trim().max(2000),
+  image_url: optionalUrl,
+  image_alt: z.string().trim().max(200),
+  show_phone: z.boolean().default(true),
+  button_text: z.string().trim().min(1).max(80),
+  button_link: z.string().trim().min(1).max(200),
+})
+export type ThanksPageSettingsInput = z.infer<typeof thanksPageSettingsSchema>
 
 const typographyField = z
   .string()
@@ -197,3 +251,27 @@ export const typographySchema = z.object({
     .transform((v) => (v && v.length > 0 ? v : null)),
 })
 export type TypographyInput = z.infer<typeof typographySchema>
+
+/** #RRGGBB or null (пустая строка → null). */
+const optionalHex6 = z.preprocess(
+  (v: unknown) =>
+    v === '' || v === undefined || v === null ? null : String(v).trim(),
+  z.union([z.null(), z.string().regex(/^#[0-9a-fA-F]{6}$/i)]),
+)
+
+export const landingSectionStyleSchema = z.object({
+  section_key: z.enum(['hero', 'products', 'categories', 'features', 'contact']),
+  background_mode: z.enum(['default', 'solid', 'gradient', 'image']).default('default'),
+  background_solid_hex: optionalHex6,
+  background_gradient_from_hex: optionalHex6,
+  background_gradient_to_hex: optionalHex6,
+  background_gradient_angle: z.coerce.number().int().min(0).max(360).default(135),
+  background_image_url: optionalUrl,
+  background_image_overlay: z.coerce.number().min(0).max(1).default(0.45),
+  foreground: optionalHex6,
+  muted_foreground: optionalHex6,
+  card: optionalHex6,
+  primary_color: optionalHex6,
+  primary_foreground: optionalHex6,
+})
+export type LandingSectionStyleInput = z.infer<typeof landingSectionStyleSchema>

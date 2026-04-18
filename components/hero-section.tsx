@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import type { HeroSettings } from "@/lib/supabase"
@@ -6,12 +7,13 @@ import { typoStyle, type TypoMap } from "@/lib/typography"
 interface HeroSectionProps {
   hero: HeroSettings | null
   typography?: TypoMap
+  themeStyle?: CSSProperties
 }
 
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1563241527-3004b7be0fee?w=1200&q=80"
 
-export function HeroSection({ hero, typography }: HeroSectionProps) {
+export function HeroSection({ hero, typography, themeStyle }: HeroSectionProps) {
   const title = hero?.title || "Цветы, которые говорят о чувствах"
   const subtitle =
     hero?.subtitle ||
@@ -29,14 +31,16 @@ export function HeroSection({ hero, typography }: HeroSectionProps) {
   const ctaStyle = typoStyle(typography, 'hero', 'cta')
   const secondaryCtaStyle = typoStyle(typography, 'hero', 'secondary_cta')
 
+  const defaultBackground: CSSProperties = {
+    background:
+      "linear-gradient(120deg, var(--background) 40%, var(--accent) 100%)",
+  }
+
   return (
     <section
       id="home"
       className="min-h-screen flex items-center pt-20 sm:pt-24 md:pt-28 pb-12 relative overflow-hidden"
-      style={{
-        background:
-          "linear-gradient(120deg, var(--background) 40%, var(--accent) 100%)",
-      }}
+      style={{ ...defaultBackground, ...themeStyle }}
       aria-labelledby="hero-heading"
     >
       <div

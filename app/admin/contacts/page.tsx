@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Save, Phone, MapPin, Mail } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
+import { SectionSurfaceEditor } from '@/components/admin/section-surface-editor'
+import { TypographySection } from '@/components/admin/typography-section'
 import { revalidateSiteCache } from '@/lib/revalidate'
 import { contactInfoSchema } from '@/lib/validation/schemas'
 
@@ -126,6 +128,10 @@ export default function ContactsPage() {
         <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">Контакты</h1>
         <p className="text-gray-600 mt-1 text-sm sm:text-base">Настройка контактной информации</p>
       </div>
+
+      <SectionSurfaceEditor sectionKey="contact" />
+
+      <TypographySection scope="contact" />
 
       <form onSubmit={handleSave} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">

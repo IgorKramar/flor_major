@@ -1,16 +1,22 @@
 import { createAnonSupabase } from '@/lib/supabase/admin'
+import type { LandingSectionKey } from '@/lib/landing-section-theme'
+import { LANDING_SECTION_KEYS } from '@/lib/landing-section-theme'
 import type {
+  CatalogPageSettings,
   Category,
   ContactInfo,
   Feature,
   FooterConfig,
   HeroSettings,
+  LandingSectionStyle,
   NavItem,
   Product,
   ProductImage,
+  ProductPageSettings,
   ProductWithImages,
   SiteSettings,
   SocialLink,
+  ThanksPageSettings,
   ThemeSettings,
   TypographyRow,
 } from '@/lib/supabase'
@@ -250,9 +256,93 @@ export async function getFooterConfig(): Promise<FooterConfig> {
       copyright_template: '© {year} ФЛОРМАЖОР. Все права защищены.',
       background_color: '#1e1e1e',
       text_color: '#f5f5f5',
+      show_brand: true,
+      show_contacts: true,
+      show_socials: true,
+      block_order: ['brand', 'contacts', 'socials'],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
+  )
+}
+
+const CATALOG_PAGE_DEFAULTS: CatalogPageSettings = {
+  id: 1,
+  heading: 'Каталог товаров',
+  subheading: 'Все наши композиции в одном месте',
+  search_placeholder: 'Поиск по названию, описанию, категории…',
+  filter_label: 'Категории',
+  sort_label: 'Сортировка',
+  sort_default_label: 'Без сортировки',
+  sort_asc_label: 'Цена: по возрастанию',
+  sort_desc_label: 'Цена: по убыванию',
+  empty_state_text: 'Ничего не найдено. Попробуйте другой запрос или сбросьте фильтры.',
+  cta_card_text: 'Подробнее',
+  show_breadcrumbs: true,
+  updated_at: new Date().toISOString(),
+}
+
+const PRODUCT_PAGE_DEFAULTS: ProductPageSettings = {
+  id: 1,
+  show_breadcrumbs: true,
+  show_category_meta: true,
+  cta_primary_text: 'Заказать',
+  cta_primary_link: '/#contact',
+  show_phone_cta: true,
+  show_similar_products: false,
+  similar_products_heading: 'Похожие товары',
+  similar_products_limit: 4,
+  updated_at: new Date().toISOString(),
+}
+
+const THANKS_PAGE_DEFAULTS: ThanksPageSettings = {
+  id: 1,
+  is_active: true,
+  heading: 'Спасибо за заявку!',
+  subheading: 'Мы свяжемся с вами в ближайшее время',
+  body_text:
+    'Наш флорист уже изучает ваш заказ и скоро перезвонит, чтобы уточнить детали и помочь с выбором.',
+  image_url: null,
+  image_alt: 'Благодарность',
+  show_phone: true,
+  button_text: 'Вернуться на главную',
+  button_link: '/',
+  updated_at: new Date().toISOString(),
+}
+
+export async function getCatalogPageSettings(): Promise<CatalogPageSettings> {
+  const supabase = createAnonSupabase()
+  return safe<CatalogPageSettings>(
+    supabase
+      .from('catalog_page_settings')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle() as unknown as Promise<{ data: CatalogPageSettings | null; error: unknown }>,
+    CATALOG_PAGE_DEFAULTS
+  )
+}
+
+export async function getProductPageSettings(): Promise<ProductPageSettings> {
+  const supabase = createAnonSupabase()
+  return safe<ProductPageSettings>(
+    supabase
+      .from('product_page_settings')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle() as unknown as Promise<{ data: ProductPageSettings | null; error: unknown }>,
+    PRODUCT_PAGE_DEFAULTS
+  )
+}
+
+export async function getThanksPageSettings(): Promise<ThanksPageSettings> {
+  const supabase = createAnonSupabase()
+  return safe<ThanksPageSettings>(
+    supabase
+      .from('thanks_page_settings')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle() as unknown as Promise<{ data: ThanksPageSettings | null; error: unknown }>,
+    THANKS_PAGE_DEFAULTS
   )
 }
 
@@ -264,6 +354,25 @@ export async function getTypography(): Promise<TypographyRow[]> {
     return []
   }
   return (data ?? []) as TypographyRow[]
+}
+
+export async function getLandingSectionStyles(): Promise<
+  Partial<Record<LandingSectionKey, LandingSectionStyle>>
+> {
+  const supabase = createAnonSupabase()
+  const { data, error } = await supabase.from('landing_section_styles').select('*')
+  if (error) {
+    console.error('[site-data] landing_section_styles error', error)
+    return {}
+  }
+  const out: Partial<Record<LandingSectionKey, LandingSectionStyle>> = {}
+  for (const row of data ?? []) {
+    const k = row.section_key as LandingSectionKey
+    if ((LANDING_SECTION_KEYS as readonly string[]).includes(k)) {
+      out[k] = row as LandingSectionStyle
+    }
+  }
+  return out
 }
 
 export type SiteData = {
@@ -278,6 +387,10 @@ export type SiteData = {
   socials: SocialLink[]
   footer: FooterConfig
   typography: TypographyRow[]
+  catalogPage: CatalogPageSettings
+  productPage: ProductPageSettings
+  thanksPage: ThanksPageSettings
+  landingSections: Partial<Record<LandingSectionKey, LandingSectionStyle>>
 }
 
 export async function getAllSiteData(): Promise<SiteData> {
@@ -293,6 +406,10 @@ export async function getAllSiteData(): Promise<SiteData> {
     socials,
     footer,
     typography,
+    catalogPage,
+    productPage,
+    thanksPage,
+    landingSections,
   ] = await Promise.all([
     getSiteSettings(),
     getContactInfo(),
@@ -305,6 +422,10 @@ export async function getAllSiteData(): Promise<SiteData> {
     getSocialLinks(),
     getFooterConfig(),
     getTypography(),
+    getCatalogPageSettings(),
+    getProductPageSettings(),
+    getThanksPageSettings(),
+    getLandingSectionStyles(),
   ])
 
   return {
@@ -319,6 +440,10 @@ export async function getAllSiteData(): Promise<SiteData> {
     socials,
     footer,
     typography,
+    catalogPage,
+    productPage,
+    thanksPage,
+    landingSections,
   }
 }
 

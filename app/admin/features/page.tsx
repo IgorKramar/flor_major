@@ -5,6 +5,8 @@ import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/lib/auth-context'
 import { IconPicker } from '@/components/admin/icon-picker'
+import { SectionSurfaceEditor } from '@/components/admin/section-surface-editor'
+import { TypographySection } from '@/components/admin/typography-section'
 import { revalidateSiteCache } from '@/lib/revalidate'
 import { featureSchema } from '@/lib/validation/schemas'
 import { getIcon } from '@/lib/icons'
@@ -121,6 +123,10 @@ export default function FeaturesPage() {
           Добавить
         </button>
       </div>
+
+      <SectionSurfaceEditor sectionKey="features" />
+
+      <TypographySection scope="features" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((item) => {

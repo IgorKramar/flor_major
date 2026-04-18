@@ -1,22 +1,30 @@
 "use client"
 
 import { useActionState, useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 import { submitLead, type SubmitLeadState } from "@/app/actions/submit-lead"
 
 const INITIAL_STATE: SubmitLeadState = { success: false, message: "" }
 
-export function ContactForm() {
+interface ContactFormProps {
+  thanksActive?: boolean
+}
+
+export function ContactForm({ thanksActive = false }: ContactFormProps) {
+  const router = useRouter()
   const [state, formAction, isPending] = useActionState(submitLead, INITIAL_STATE)
   const [touched, setTouched] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
-    if (state.success && formRef.current) {
-      formRef.current.reset()
+    if (!state.success) return
+    formRef.current?.reset()
+    if (thanksActive) {
+      router.push('/thanks')
     }
-  }, [state.success])
+  }, [state.success, thanksActive, router])
 
   const fieldError = (key: string) => state.fieldErrors?.[key]
 

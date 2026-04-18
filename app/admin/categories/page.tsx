@@ -5,6 +5,9 @@ import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/lib/auth-context'
 import { IconPicker } from '@/components/admin/icon-picker'
+import { ImageUpload } from '@/components/admin/image-upload'
+import { SectionSurfaceEditor } from '@/components/admin/section-surface-editor'
+import { TypographySection } from '@/components/admin/typography-section'
 import { revalidateSiteCache } from '@/lib/revalidate'
 import { categorySchema } from '@/lib/validation/schemas'
 import type { Tables } from '@/lib/database.types'
@@ -17,6 +20,10 @@ interface FormState {
   name: string
   description: string
   icon_name: string
+  image_url: string | null
+  image_alt: string
+  overlay_opacity: number
+  show_icon_over_image: boolean
   sort_order: string
   show_on_home: boolean
   is_active: boolean
@@ -27,6 +34,10 @@ const EMPTY: FormState = {
   name: '',
   description: '',
   icon_name: 'Flower2',
+  image_url: null,
+  image_alt: '',
+  overlay_opacity: 0.55,
+  show_icon_over_image: false,
   sort_order: '0',
   show_on_home: true,
   is_active: true,
@@ -63,6 +74,10 @@ export default function CategoriesPage() {
       name: item.name,
       description: item.description ?? '',
       icon_name: item.icon_name ?? 'Flower2',
+      image_url: item.image_url ?? null,
+      image_alt: item.image_alt ?? '',
+      overlay_opacity: item.overlay_opacity ?? 0.55,
+      show_icon_over_image: item.show_icon_over_image ?? false,
       sort_order: String(item.sort_order ?? 0),
       show_on_home: item.show_on_home,
       is_active: item.is_active,
@@ -75,6 +90,8 @@ export default function CategoriesPage() {
     const parsed = categorySchema.safeParse({
       ...form,
       description: form.description || null,
+      image_url: form.image_url || null,
+      image_alt: form.image_alt || null,
     })
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? 'Проверьте поля')
@@ -114,7 +131,7 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-32">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">Категории</h1>
@@ -128,6 +145,10 @@ export default function CategoriesPage() {
           Добавить
         </button>
       </div>
+
+      <SectionSurfaceEditor sectionKey="categories" />
+
+      <TypographySection scope="categories" />
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
@@ -256,6 +277,57 @@ export default function CategoriesPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
                 />
               </div>
+
+              <ImageUpload
+                value={form.image_url}
+                onChange={(url) => setForm({ ...form, image_url: url })}
+                folder="categories"
+                label="Изображение карточки"
+              />
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Alt-текст изображения
+                </label>
+                <input
+                  type="text"
+                  value={form.image_alt}
+                  onChange={(e) => setForm({ ...form, image_alt: e.target.value })}
+                  placeholder="Описание для доступности"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                />
+              </div>
+
+              {form.image_url && (
+                <div className="space-y-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Затемнение оверлея: {Math.round(form.overlay_opacity * 100)}%
+                    </label>
+                    <input
+                      type="range"
+                      min={0}
+                      max={1}
+                      step={0.05}
+                      value={form.overlay_opacity}
+                      onChange={(e) =>
+                        setForm({ ...form, overlay_opacity: parseFloat(e.target.value) })
+                      }
+                      className="w-full"
+                    />
+                  </div>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={form.show_icon_over_image}
+                      onChange={(e) =>
+                        setForm({ ...form, show_icon_over_image: e.target.checked })
+                      }
+                    />
+                    <span className="text-sm">Показывать иконку поверх изображения</span>
+                  </label>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

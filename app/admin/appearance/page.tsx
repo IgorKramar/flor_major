@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Save, Palette } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
+import { ColorPickerField } from '@/components/admin/color-picker-field'
 import { revalidateSiteCache } from '@/lib/revalidate'
 import { themeSchema } from '@/lib/validation/schemas'
 
@@ -122,29 +123,19 @@ export default function AppearancePage() {
                 ['foreground_color', 'Текст'],
               ] as const
             ).map(([key, label]) => (
-              <div key={key}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {label}
-                </label>
-                <div className="flex gap-3">
-                  <input
-                    type="color"
-                    value={settings[key]}
-                    onChange={(e) =>
-                      setSettings({ ...settings, [key]: e.target.value })
-                    }
-                    className="w-12 h-10 rounded-lg border border-gray-300 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={settings[key]}
-                    onChange={(e) =>
-                      setSettings({ ...settings, [key]: e.target.value })
-                    }
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                  />
-                </div>
-              </div>
+              <ColorPickerField
+                key={key}
+                label={label}
+                optional={false}
+                initialHex={DEFAULTS[key]}
+                value={settings[key]}
+                onChange={(v) =>
+                  setSettings({
+                    ...settings,
+                    [key]: v && /^#[0-9a-fA-F]{6}$/i.test(v) ? v : DEFAULTS[key],
+                  })
+                }
+              />
             ))}
           </div>
 

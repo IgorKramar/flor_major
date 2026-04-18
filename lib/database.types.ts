@@ -69,8 +69,12 @@ export type Database = {
           description: string | null
           icon_name: string | null
           id: number
+          image_alt: string | null
+          image_url: string | null
           is_active: boolean
           name: string
+          overlay_opacity: number
+          show_icon_over_image: boolean
           show_on_home: boolean
           slug: string
           sort_order: number
@@ -81,8 +85,12 @@ export type Database = {
           description?: string | null
           icon_name?: string | null
           id?: number
+          image_alt?: string | null
+          image_url?: string | null
           is_active?: boolean
           name: string
+          overlay_opacity?: number
+          show_icon_over_image?: boolean
           show_on_home?: boolean
           slug: string
           sort_order?: number
@@ -93,8 +101,12 @@ export type Database = {
           description?: string | null
           icon_name?: string | null
           id?: number
+          image_alt?: string | null
+          image_url?: string | null
           is_active?: boolean
           name?: string
+          overlay_opacity?: number
+          show_icon_over_image?: boolean
           show_on_home?: boolean
           slug?: string
           sort_order?: number
@@ -195,30 +207,42 @@ export type Database = {
       footer_config: {
         Row: {
           background_color: string
+          block_order: string[]
           brand_display: string
           copyright_template: string
           created_at: string
           id: number
+          show_brand: boolean
+          show_contacts: boolean
+          show_socials: boolean
           tagline: string
           text_color: string
           updated_at: string
         }
         Insert: {
           background_color?: string
+          block_order?: string[]
           brand_display?: string
           copyright_template?: string
           created_at?: string
           id?: number
+          show_brand?: boolean
+          show_contacts?: boolean
+          show_socials?: boolean
           tagline?: string
           text_color?: string
           updated_at?: string
         }
         Update: {
           background_color?: string
+          block_order?: string[]
           brand_display?: string
           copyright_template?: string
           created_at?: string
           id?: number
+          show_brand?: boolean
+          show_contacts?: boolean
+          show_socials?: boolean
           tagline?: string
           text_color?: string
           updated_at?: string
@@ -324,6 +348,57 @@ export type Database = {
           status?: string
           updated_at?: string
           user_agent?: string | null
+        }
+        Relationships: []
+      }
+      landing_section_styles: {
+        Row: {
+          background_gradient_angle: number
+          background_gradient_from_hex: string | null
+          background_gradient_to_hex: string | null
+          background_image_overlay: number
+          background_image_url: string | null
+          background_mode: string
+          background_solid_hex: string | null
+          card: string | null
+          foreground: string | null
+          muted_foreground: string | null
+          primary_color: string | null
+          primary_foreground: string | null
+          section_key: string
+          updated_at: string
+        }
+        Insert: {
+          background_gradient_angle?: number
+          background_gradient_from_hex?: string | null
+          background_gradient_to_hex?: string | null
+          background_image_overlay?: number
+          background_image_url?: string | null
+          background_mode?: string
+          background_solid_hex?: string | null
+          card?: string | null
+          foreground?: string | null
+          muted_foreground?: string | null
+          primary_color?: string | null
+          primary_foreground?: string | null
+          section_key: string
+          updated_at?: string
+        }
+        Update: {
+          background_gradient_angle?: number
+          background_gradient_from_hex?: string | null
+          background_gradient_to_hex?: string | null
+          background_image_overlay?: number
+          background_image_url?: string | null
+          background_mode?: string
+          background_solid_hex?: string | null
+          card?: string | null
+          foreground?: string | null
+          muted_foreground?: string | null
+          primary_color?: string | null
+          primary_foreground?: string | null
+          section_key?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -460,6 +535,135 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
+      }
+      catalog_page_settings: {
+        Row: {
+          cta_card_text: string
+          empty_state_text: string
+          filter_label: string
+          heading: string
+          id: number
+          search_placeholder: string
+          show_breadcrumbs: boolean
+          sort_asc_label: string
+          sort_default_label: string
+          sort_desc_label: string
+          sort_label: string
+          subheading: string
+          updated_at: string
+        }
+        Insert: {
+          cta_card_text?: string
+          empty_state_text?: string
+          filter_label?: string
+          heading?: string
+          id?: number
+          search_placeholder?: string
+          show_breadcrumbs?: boolean
+          sort_asc_label?: string
+          sort_default_label?: string
+          sort_desc_label?: string
+          sort_label?: string
+          subheading?: string
+          updated_at?: string
+        }
+        Update: {
+          cta_card_text?: string
+          empty_state_text?: string
+          filter_label?: string
+          heading?: string
+          id?: number
+          search_placeholder?: string
+          show_breadcrumbs?: boolean
+          sort_asc_label?: string
+          sort_default_label?: string
+          sort_desc_label?: string
+          sort_label?: string
+          subheading?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      product_page_settings: {
+        Row: {
+          cta_primary_link: string
+          cta_primary_text: string
+          id: number
+          show_breadcrumbs: boolean
+          show_category_meta: boolean
+          show_phone_cta: boolean
+          show_similar_products: boolean
+          similar_products_heading: string
+          similar_products_limit: number
+          updated_at: string
+        }
+        Insert: {
+          cta_primary_link?: string
+          cta_primary_text?: string
+          id?: number
+          show_breadcrumbs?: boolean
+          show_category_meta?: boolean
+          show_phone_cta?: boolean
+          show_similar_products?: boolean
+          similar_products_heading?: string
+          similar_products_limit?: number
+          updated_at?: string
+        }
+        Update: {
+          cta_primary_link?: string
+          cta_primary_text?: string
+          id?: number
+          show_breadcrumbs?: boolean
+          show_category_meta?: boolean
+          show_phone_cta?: boolean
+          show_similar_products?: boolean
+          similar_products_heading?: string
+          similar_products_limit?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      thanks_page_settings: {
+        Row: {
+          body_text: string
+          button_link: string
+          button_text: string
+          heading: string
+          id: number
+          image_alt: string
+          image_url: string | null
+          is_active: boolean
+          show_phone: boolean
+          subheading: string
+          updated_at: string
+        }
+        Insert: {
+          body_text?: string
+          button_link?: string
+          button_text?: string
+          heading?: string
+          id?: number
+          image_alt?: string
+          image_url?: string | null
+          is_active?: boolean
+          show_phone?: boolean
+          subheading?: string
+          updated_at?: string
+        }
+        Update: {
+          body_text?: string
+          button_link?: string
+          button_text?: string
+          heading?: string
+          id?: number
+          image_alt?: string
+          image_url?: string | null
+          is_active?: boolean
+          show_phone?: boolean
+          subheading?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       typography_settings: {
         Row: {
