@@ -54,3 +54,4 @@ out/
 
 # Supabase
 .supabase/
+.onreza/
