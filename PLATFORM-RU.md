@@ -286,5 +286,6 @@ psql "$SUPABASE_DB_URL" -f migrations/*.sql
 ## 11. Связанные документы
 
 - [`AUDIT.md`](AUDIT.md) — аудит кодовой базы ФлорМажор (баги, перфоманс, безопасность).
+- [`CHEAP-RU.md`](CHEAP-RU.md) — минимальный legal-сценарий: одна VM в Timeweb + self-host Supabase в Docker Compose, ~1 100 ₽/мес. Подходит, пока проектов мало.
 - [`MIGRATION-RU.md`](MIGRATION-RU.md) — частный план миграции ФлорМажора как первого тенанта на эту платформу (сценарий B: без формы лидов).
 - [`HOMELAB-RU.md`](HOMELAB-RU.md) — гибридное расширение: дачный K3s-кластер как homelab + бэкап-партнёр для облачной платформы.
