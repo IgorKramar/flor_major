@@ -55,6 +55,60 @@ VM `77.232.129.172` (alias `flor-server` в `~/.ssh/config`):
 
 ## Phase 0 — Код-изменения в репо
 
+### Task 0: Закрепить версию Node 24 LTS — `mise.toml` + `package.json:engines`
+
+**Files:**
+- Modify: `mise.toml`
+- Modify: `package.json`
+
+> Локально, в CI, на VM — везде используем **Node 24 LTS**. Сейчас в `mise.toml` стоит `node = "latest"` (= 25 Current), что неконсистентно с тем, что мы будем ставить на сервер через NodeSource `setup_24.x`. Закрепляем.
+
+- [ ] **Step 1: Обновить `mise.toml`**
+
+```toml
+[tools]
+node = "24"
+```
+
+- [ ] **Step 2: Применить и проверить версию**
+
+Run:
+```bash
+mise install
+mise exec -- node --version
+```
+Expected: `v24.X.X`.
+
+- [ ] **Step 3: Добавить `engines` в `package.json`**
+
+В корне объекта рядом с `"scripts"` / `"dependencies"`:
+
+```json
+{
+  "engines": {
+    "node": ">=24"
+  }
+}
+```
+
+- [ ] **Step 4: Прогон проверок на новой версии Node**
+
+Run:
+```bash
+mise exec -- pnpm install --frozen-lockfile
+mise exec -- pnpm typecheck && mise exec -- pnpm lint && mise exec -- pnpm test
+```
+Expected: всё pass. Если pnpm-lock.yaml поменялся — это ОК, пересохраняется.
+
+- [ ] **Step 5: Закоммитить**
+
+```bash
+git add mise.toml package.json pnpm-lock.yaml
+git commit -m "chore: закрепить Node 24 LTS (mise + engines)"
+```
+
+---
+
 ### Task 1: `next.config.mjs` — `output: 'standalone'`
 
 **Files:**
@@ -262,7 +316,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'pnpm'
 
       - name: Install deps
@@ -348,7 +402,7 @@ Expected: 4 коммита (Task 1+2 объединены, потом Task 3, 4,
 
 ## Phase 1 — Серверная подготовка
 
-### Task 7: Установить Node 22 LTS на VM (NodeSource)
+### Task 7: Установить Node 24 LTS на VM (NodeSource)
 
 **Files:** server packages
 
@@ -356,7 +410,7 @@ Expected: 4 коммита (Task 1+2 объединены, потом Task 3, 4,
 
 Run:
 ```bash
-ssh flor-server 'curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -' 2>&1 | tail -3
+ssh flor-server 'curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -' 2>&1 | tail -3
 ssh flor-server 'sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs 2>&1 | tail -3'
 ```
 Expected: `node` установлен.
