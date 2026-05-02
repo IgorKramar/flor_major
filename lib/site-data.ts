@@ -16,7 +16,6 @@ import type {
   ProductWithImages,
   SiteSettings,
   SocialLink,
-  ThanksPageSettings,
   ThemeSettings,
   TypographyRow,
 } from '@/lib/supabase'
@@ -295,21 +294,6 @@ const PRODUCT_PAGE_DEFAULTS: ProductPageSettings = {
   updated_at: new Date().toISOString(),
 }
 
-const THANKS_PAGE_DEFAULTS: ThanksPageSettings = {
-  id: 1,
-  is_active: true,
-  heading: 'Спасибо за заявку!',
-  subheading: 'Мы свяжемся с вами в ближайшее время',
-  body_text:
-    'Наш флорист уже изучает ваш заказ и скоро перезвонит, чтобы уточнить детали и помочь с выбором.',
-  image_url: null,
-  image_alt: 'Благодарность',
-  show_phone: true,
-  button_text: 'Вернуться на главную',
-  button_link: '/',
-  updated_at: new Date().toISOString(),
-}
-
 export async function getCatalogPageSettings(): Promise<CatalogPageSettings> {
   const supabase = createAnonSupabase()
   return safe<CatalogPageSettings>(
@@ -331,18 +315,6 @@ export async function getProductPageSettings(): Promise<ProductPageSettings> {
       .eq('id', 1)
       .maybeSingle() as unknown as Promise<{ data: ProductPageSettings | null; error: unknown }>,
     PRODUCT_PAGE_DEFAULTS
-  )
-}
-
-export async function getThanksPageSettings(): Promise<ThanksPageSettings> {
-  const supabase = createAnonSupabase()
-  return safe<ThanksPageSettings>(
-    supabase
-      .from('thanks_page_settings')
-      .select('*')
-      .eq('id', 1)
-      .maybeSingle() as unknown as Promise<{ data: ThanksPageSettings | null; error: unknown }>,
-    THANKS_PAGE_DEFAULTS
   )
 }
 
@@ -389,7 +361,6 @@ export type SiteData = {
   typography: TypographyRow[]
   catalogPage: CatalogPageSettings
   productPage: ProductPageSettings
-  thanksPage: ThanksPageSettings
   landingSections: Partial<Record<LandingSectionKey, LandingSectionStyle>>
 }
 
@@ -408,7 +379,6 @@ export async function getAllSiteData(): Promise<SiteData> {
     typography,
     catalogPage,
     productPage,
-    thanksPage,
     landingSections,
   ] = await Promise.all([
     getSiteSettings(),
@@ -424,7 +394,6 @@ export async function getAllSiteData(): Promise<SiteData> {
     getTypography(),
     getCatalogPageSettings(),
     getProductPageSettings(),
-    getThanksPageSettings(),
     getLandingSectionStyles(),
   ])
 
@@ -442,7 +411,6 @@ export async function getAllSiteData(): Promise<SiteData> {
     typography,
     catalogPage,
     productPage,
-    thanksPage,
     landingSections,
   }
 }

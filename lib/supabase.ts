@@ -30,7 +30,6 @@ export type {
 
 export type Product = import('./database.types').Tables<'products'>
 export type ProductImage = import('./database.types').Tables<'product_images'>
-export type Lead = import('./database.types').Tables<'leads'>
 export type HeroSettings = import('./database.types').Tables<'hero_settings'>
 export type SiteSettings = import('./database.types').Tables<'site_settings'>
 export type ContactInfo = import('./database.types').Tables<'contact_info'>
@@ -43,7 +42,6 @@ export type SocialLink = import('./database.types').Tables<'social_links'>
 export type TypographyRow = import('./database.types').Tables<'typography_settings'>
 export type CatalogPageSettings = import('./database.types').Tables<'catalog_page_settings'>
 export type ProductPageSettings = import('./database.types').Tables<'product_page_settings'>
-export type ThanksPageSettings = import('./database.types').Tables<'thanks_page_settings'>
 export type LandingSectionStyle = import('./database.types').Tables<'landing_section_styles'>
 
 export type ProductWithImages = Product & { images: ProductImage[] }
