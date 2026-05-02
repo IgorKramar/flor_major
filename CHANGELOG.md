@@ -42,7 +42,17 @@
 - **Implementation plan** (`docs/superpowers/plans/2026-05-02-code-remove-leads-form.md`): пошаговый план для ветки `migrate-cheap-stack`.
 - В корневой `README.md` добавлен раздел «Документация» со ссылками.
 
-### Инфраструктура
+### Серверная инфраструктура
+
+- **Self-hosted Supabase поднят** на Timeweb VM MSK-50 (Ubuntu 24.04 LTS, 2 vCPU / 4 ГБ / 50 ГБ NVMe, IP `77.232.129.172`). 7 сервисов в Docker Compose: `db`, `kong`, `auth`, `rest`, `storage`, `meta`, `imgproxy`. Используется ~1.2 ГБ из 3.8 ГБ RAM.
+- **Hardening:** non-root пользователь `supa` с sudo NOPASSWD, отключены root-login и парольная аутентификация SSH (только ключи), ufw (22/80/443), fail2ban, unattended-upgrades с автоперезагрузкой 04:30 МСК, swap-файл 2 ГБ.
+- **Shrink-конфиг под 4 ГБ** в `/opt/supabase/docker/docker-compose.override.yml`: memory limits на каждый сервис, Postgres tuning (shared_buffers=512MB, work_mem=8MB, max_connections=50), Studio в `profile: manual` (поднимается on-demand), `realtime`/`functions`/`analytics`/`vector`/`supavisor` в `profile: disabled`.
+- **Caddy 2.11.2** перед Kong на `db.flormajor-omsk.ru` с авто-TLS Let's Encrypt и security-хедерами (HSTS, X-Content-Type-Options, Referrer-Policy).
+- **Бэкапы каждые 6 часов** (`/opt/backup/backup.sh` + cron) → Timeweb Cloud Storage `flor-backups`, retention 14 дней. Дамп Postgres + tarball стораджа.
+- **Helper-скрипты** в `scripts/dev/`: `flor-studio-up`/`flor-studio-down` (Studio on-demand через SSH-туннель), `flor-db-tunnel` (Postgres-туннель через socat-relay), `flor-backup-pull` (offsite-копия бэкапов на ноут).
+- **Implementation plan A** (`docs/superpowers/plans/2026-05-02-server-supabase-setup.md`) — пошаговый план настройки сервера, 8 фаз. При выполнении выяснилось: миграции `0001..0028` предполагают существующую таблицу `public.products` — её создание перенесено в план C через `pg_dump --schema-only` с Supabase Cloud.
+
+### Прочая инфраструктура
 
 - Добавлен `mise.toml` с `node = "latest"` (нужно для совместимости с vitest 4.x под Node ≥ 25).
 
