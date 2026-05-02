@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HOST="flor-server"
+
+ssh "$HOST" 'cd /opt/supabase/docker && docker compose stop studio'
+echo "🔴 Studio остановлен."

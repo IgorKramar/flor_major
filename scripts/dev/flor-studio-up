@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HOST="flor-server"
+
+echo "🟢 Запуск Studio на сервере..."
+ssh "$HOST" 'cd /opt/supabase/docker && docker compose --profile manual up -d studio'
+
+echo "🟢 Studio поднят. Открываю SSH-туннель на http://localhost:3000"
+echo "   Логин: admin / см. ~/.flormajor/secrets.env (DASHBOARD_PASSWORD)"
+echo "   Ctrl+C — закрыть туннель (Studio продолжит работу; flor-studio-down чтобы остановить)."
+
+exec ssh -N -L 3000:localhost:3000 "$HOST"

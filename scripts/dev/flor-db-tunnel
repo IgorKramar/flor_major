@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HOST="flor-server"
+
+echo "🟢 SSH-туннель Postgres на localhost:5432 (Ctrl+C — закрыть)"
+echo "   Использовать: PGPASSWORD=\$POSTGRES_PASSWORD psql -h localhost -U postgres"
+echo "   POSTGRES_PASSWORD см. в ~/.flormajor/secrets.env"
+
+# Postgres внутри контейнера supabase-db слушает порт 5432.
+# Из хоста сервера к нему доступа НЕТ напрямую (контейнер изолирован).
+# Чтобы пробросить — соединяемся к kong gateway?  Нет, нам нужен сырой PG.
+# Решение: туннель на 5432 через docker exec через ssh.
+# Используем ProxyCommand-стиль: ssh-туннель на 5432 хоста, а на хосте — socat
+# к контейнеру. Или проще — через SSH ProxyJump.
+#
+# Самое простое: добавить временно port mapping на db в override и поднять.
+# Но это меняет конфиг.
+#
+# Альтернатива — выполнить psql прямо на сервере через docker exec.
+# Этот скрипт ниже использует трюк: туннель проксирует через docker network
+# через временный TCP-relay контейнер.
+
+ssh "$HOST" 'docker run --rm -d --name pg-tunnel-relay --network supabase_default -p 5432:5432 alpine/socat:latest TCP-LISTEN:5432,fork,reuseaddr TCP:supabase-db:5432' >/dev/null 2>&1 || true
+trap 'ssh "$HOST" "docker rm -f pg-tunnel-relay" >/dev/null 2>&1 || true; echo "🔴 Tunnel closed."' EXIT
+
+exec ssh -N -L 5432:localhost:5432 "$HOST"
