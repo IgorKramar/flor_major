@@ -96,17 +96,6 @@ export const TYPO_SCOPES: readonly TypoScopeDef[] = [
       { key: 'meta', label: 'Мета-информация', sampleText: 'Категория: Букеты' },
     ],
   },
-  {
-    scope: 'thanks_page',
-    label: 'Страница «Спасибо»',
-    elements: [
-      { key: 'heading', label: 'Заголовок', sampleText: 'Спасибо за заявку!' },
-      { key: 'subheading', label: 'Подзаголовок', sampleText: 'Мы свяжемся с вами в ближайшее время' },
-      { key: 'body', label: 'Текст', sampleText: 'Наш флорист уже изучает ваш заказ' },
-      { key: 'phone', label: 'Телефон', sampleText: '+7 (933) 303-39-42' },
-      { key: 'button', label: 'Кнопка', sampleText: 'Вернуться на главную' },
-    ],
-  },
 ] as const
 
 export const FONT_FAMILY_OPTIONS = [

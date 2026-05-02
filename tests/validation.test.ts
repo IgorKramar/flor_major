@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import {
-  leadSchema,
   productSchema,
   productImageSchema,
   categorySchema,
@@ -15,29 +14,6 @@ import {
   typographySchema,
   landingSectionStyleSchema,
 } from '@/lib/validation/schemas'
-
-describe('leadSchema', () => {
-  it('accepts a valid lead payload', () => {
-    const result = leadSchema.safeParse({
-      name: 'Анна',
-      phone: '+7 (901) 234-56-78',
-      interest: 'Свадебный букет',
-      message: 'Нужна консультация',
-      source: 'landing',
-    })
-    expect(result.success).toBe(true)
-  })
-
-  it('rejects too short name', () => {
-    const result = leadSchema.safeParse({ name: 'A', phone: '+7999' })
-    expect(result.success).toBe(false)
-  })
-
-  it('rejects phone with forbidden characters', () => {
-    const result = leadSchema.safeParse({ name: 'Анна', phone: 'abcdef' })
-    expect(result.success).toBe(false)
-  })
-})
 
 describe('productSchema', () => {
   it('accepts minimal product', () => {

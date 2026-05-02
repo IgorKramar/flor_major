@@ -27,6 +27,11 @@ interface ProductPageProps {
   params: Promise<{ slug: string }>
 }
 
+export async function generateStaticParams() {
+  const products = await getAllProducts()
+  return products.map((product) => ({ slug: product.slug }))
+}
+
 const PLACEHOLDER_IMAGE =
   "https://images.unsplash.com/photo-1487530811176-3780de880c2d?w=600&q=80"
 

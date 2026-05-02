@@ -14,20 +14,6 @@ const optionalUrl = z
 
 const optionalText = z.string().trim().max(5000).optional().nullable()
 
-export const leadSchema = z.object({
-  name: z.string().trim().min(2, 'Введите имя').max(120),
-  phone: z
-    .string()
-    .trim()
-    .min(6, 'Введите телефон')
-    .max(32)
-    .regex(/^[\d+()\-\s]+$/, 'Телефон содержит недопустимые символы'),
-  interest: z.string().trim().max(120).optional().nullable(),
-  message: z.string().trim().max(2000).optional().nullable(),
-  source: z.string().trim().max(60).optional().nullable(),
-})
-export type LeadInput = z.infer<typeof leadSchema>
-
 export const productImageSchema = z.object({
   id: z.coerce.number().int().optional(),
   url: z.string().trim().url('Некорректный URL'),
@@ -210,19 +196,6 @@ export const productPageSettingsSchema = z.object({
   similar_products_limit: z.coerce.number().int().min(1).max(12).default(4),
 })
 export type ProductPageSettingsInput = z.infer<typeof productPageSettingsSchema>
-
-export const thanksPageSettingsSchema = z.object({
-  is_active: z.boolean().default(true),
-  heading: z.string().trim().min(1).max(200),
-  subheading: z.string().trim().max(300),
-  body_text: z.string().trim().max(2000),
-  image_url: optionalUrl,
-  image_alt: z.string().trim().max(200),
-  show_phone: z.boolean().default(true),
-  button_text: z.string().trim().min(1).max(80),
-  button_link: z.string().trim().min(1).max(200),
-})
-export type ThanksPageSettingsInput = z.infer<typeof thanksPageSettingsSchema>
 
 const typographyField = z
   .string()

@@ -1,6 +1,5 @@
 import type { CSSProperties } from "react"
 import { MapPin, Phone, Mail } from "lucide-react"
-import { ContactForm } from "./contact-form"
 import type { ContactInfo } from "@/lib/supabase"
 import { typoStyle, type TypoMap } from "@/lib/typography"
 
@@ -14,7 +13,6 @@ interface ContactSectionProps {
   heading?: string
   subheading?: string
   typography?: TypoMap
-  thanksActive?: boolean
   themeStyle?: CSSProperties
 }
 
@@ -23,7 +21,6 @@ export function ContactSection({
   heading = "Свяжитесь с нами",
   subheading = "Поможем подобрать идеальный букет или подарок по случаю.",
   typography,
-  thanksActive = false,
   themeStyle,
 }: ContactSectionProps) {
   const headingStyle = typoStyle(typography, 'contact', 'heading')
@@ -41,142 +38,130 @@ export function ContactSection({
       }}
       aria-labelledby="contact-heading"
     >
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="grid lg:grid-cols-[1fr_1.1fr] gap-8 sm:gap-10 md:gap-14 items-start">
-          <div>
-            <h2
-              id="contact-heading"
-              className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-3 sm:mb-4"
-              style={headingStyle}
-            >
-              {heading}
-            </h2>
-            <p
-              className="text-muted-foreground text-base sm:text-lg mb-6 sm:mb-8"
-              style={subheadingStyle}
-            >
-              {subheading}
-            </p>
+      <div className="container mx-auto px-4 sm:px-6 max-w-5xl">
+        <div>
+          <h2
+            id="contact-heading"
+            className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-3 sm:mb-4 text-center"
+            style={headingStyle}
+          >
+            {heading}
+          </h2>
+          <p
+            className="text-muted-foreground text-base sm:text-lg mb-10 sm:mb-12 text-center"
+            style={subheadingStyle}
+          >
+            {subheading}
+          </p>
 
-            <div className="space-y-5 sm:space-y-6">
-              {contact.address && (
-                <address className="not-italic">
-                  <div className="flex gap-3 sm:gap-4 items-start">
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary flex items-center justify-center text-primary-foreground flex-shrink-0">
-                      <MapPin className="w-5 h-5" aria-hidden="true" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-medium mb-1" style={labelStyle}>
-                        Адрес
-                      </h3>
-                      <p
-                        className="text-muted-foreground text-sm sm:text-base break-words"
-                        style={valueStyle}
-                      >
-                        {contact.address}
-                        {contact.working_hours && (
-                          <>
-                            <br />
-                            {contact.working_hours}
-                          </>
-                        )}
-                      </p>
-                    </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10">
+            {contact.address && (
+              <address className="not-italic">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground mb-5">
+                    <MapPin className="w-7 h-7 sm:w-9 sm:h-9" aria-hidden="true" />
                   </div>
-                </address>
-              )}
+                  <h3 className="font-medium mb-2 text-lg sm:text-xl" style={{ ...labelStyle, textAlign: 'center' }}>
+                    Адрес
+                  </h3>
+                  <p
+                    className="text-muted-foreground text-base sm:text-lg break-words"
+                    style={{ ...valueStyle, textAlign: 'center' }}
+                  >
+                    {contact.address}
+                    {contact.working_hours && (
+                      <>
+                        <br />
+                        {contact.working_hours}
+                      </>
+                    )}
+                  </p>
+                </div>
+              </address>
+            )}
 
-              {contact.phone_primary && (
-                <div className="flex gap-3 sm:gap-4 items-start">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary flex items-center justify-center text-primary-foreground flex-shrink-0">
-                    <Phone className="w-5 h-5" aria-hidden="true" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-medium mb-1" style={labelStyle}>
-                      Телефон
-                    </h3>
-                    <p
-                      className="text-muted-foreground text-sm sm:text-base break-words"
-                      style={valueStyle}
-                    >
+            {contact.phone_primary && (
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground mb-5">
+                  <Phone className="w-7 h-7 sm:w-9 sm:h-9" aria-hidden="true" />
+                </div>
+                <h3 className="font-medium mb-2 text-lg sm:text-xl" style={{ ...labelStyle, textAlign: 'center' }}>
+                  Телефон
+                </h3>
+                <p
+                  className="text-muted-foreground text-base sm:text-lg break-words"
+                  style={{ ...valueStyle, textAlign: 'center' }}
+                >
+                  <a
+                    href={telHref(contact.phone_primary)}
+                    className="hover:text-primary transition-colors"
+                  >
+                    {contact.phone_primary}
+                  </a>
+                  {contact.phone_secondary && (
+                    <>
+                      <br />
                       <a
-                        href={telHref(contact.phone_primary)}
+                        href={telHref(contact.phone_secondary)}
                         className="hover:text-primary transition-colors"
                       >
-                        {contact.phone_primary}
+                        {contact.phone_secondary}
                       </a>
-                      {contact.phone_secondary && (
-                        <>
-                          <br />
-                          <a
-                            href={telHref(contact.phone_secondary)}
-                            className="hover:text-primary transition-colors"
-                          >
-                            {contact.phone_secondary}
-                          </a>
-                        </>
-                      )}
-                    </p>
-                  </div>
-                </div>
-              )}
+                    </>
+                  )}
+                </p>
+              </div>
+            )}
 
-              {(contact.email || contact.whatsapp || contact.telegram) && (
-                <div className="flex gap-3 sm:gap-4 items-start">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary flex items-center justify-center text-primary-foreground flex-shrink-0">
-                    <Mail className="w-5 h-5" aria-hidden="true" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-medium mb-1" style={labelStyle}>
-                      Email & Мессенджеры
-                    </h3>
-                    <p
-                      className="text-muted-foreground text-sm sm:text-base break-words"
-                      style={valueStyle}
+            {(contact.email || contact.whatsapp || contact.telegram) && (
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground mb-5">
+                  <Mail className="w-7 h-7 sm:w-9 sm:h-9" aria-hidden="true" />
+                </div>
+                <h3 className="font-medium mb-2 text-lg sm:text-xl" style={{ ...labelStyle, textAlign: 'center' }}>
+                  Email & Мессенджеры
+                </h3>
+                <p
+                  className="text-muted-foreground text-base sm:text-lg break-words"
+                  style={{ ...valueStyle, textAlign: 'center' }}
+                >
+                  {contact.email && (
+                    <a
+                      href={`mailto:${contact.email}`}
+                      className="hover:text-primary transition-colors break-all"
                     >
-                      {contact.email && (
+                      {contact.email}
+                    </a>
+                  )}
+                  {(contact.whatsapp || contact.telegram) && (
+                    <>
+                      {contact.email && <br />}
+                      {contact.whatsapp && (
                         <a
-                          href={`mailto:${contact.email}`}
-                          className="hover:text-primary transition-colors break-all"
+                          href={contact.whatsapp}
+                          target="_blank"
+                          rel="noopener"
+                          className="hover:text-primary transition-colors"
                         >
-                          {contact.email}
+                          WhatsApp
                         </a>
                       )}
-                      {(contact.whatsapp || contact.telegram) && (
-                        <>
-                          {contact.email && <br />}
-                          {contact.whatsapp && (
-                            <a
-                              href={contact.whatsapp}
-                              target="_blank"
-                              rel="noopener"
-                              className="hover:text-primary transition-colors"
-                            >
-                              WhatsApp
-                            </a>
-                          )}
-                          {contact.whatsapp && contact.telegram && " / "}
-                          {contact.telegram && (
-                            <a
-                              href={contact.telegram}
-                              target="_blank"
-                              rel="noopener"
-                              className="hover:text-primary transition-colors"
-                            >
-                              Telegram
-                            </a>
-                          )}
-                        </>
+                      {contact.whatsapp && contact.telegram && " / "}
+                      {contact.telegram && (
+                        <a
+                          href={contact.telegram}
+                          target="_blank"
+                          rel="noopener"
+                          className="hover:text-primary transition-colors"
+                        >
+                          Telegram
+                        </a>
                       )}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <ContactForm thanksActive={thanksActive} />
+                    </>
+                  )}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
