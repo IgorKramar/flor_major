@@ -8,7 +8,6 @@ import { useVirtualKeyboard } from '@/lib/hooks/use-virtual-keyboard'
 import {
   LayoutDashboard,
   Package,
-  Users,
   Settings,
   Image as ImageIcon,
   FileText,
@@ -24,7 +23,6 @@ import {
   MoreHorizontal,
   BookOpen,
   PackageOpen,
-  Heart,
   X,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
@@ -33,7 +31,6 @@ const navigation = [
   { name: 'Обзор', href: '/admin', icon: LayoutDashboard },
   { name: 'Товары', href: '/admin/products', icon: Package },
   { name: 'Категории', href: '/admin/categories', icon: Layers },
-  { name: 'Заявки', href: '/admin/leads', icon: Users },
   { name: 'Hero', href: '/admin/hero', icon: ImageIcon },
   { name: 'Преимущества', href: '/admin/features', icon: Sparkles },
   { name: 'Навигация', href: '/admin/navigation', icon: ListTree },
@@ -41,7 +38,6 @@ const navigation = [
   { name: 'Контакты', href: '/admin/contacts', icon: FileText },
   { name: 'Страница каталога', href: '/admin/catalog-page', icon: BookOpen },
   { name: 'Страница товара', href: '/admin/product-page', icon: PackageOpen },
-  { name: 'Страница «Спасибо»', href: '/admin/thanks', icon: Heart },
   { name: 'SEO', href: '/admin/seo', icon: FileSearch },
   { name: 'Брендинг', href: '/admin/appearance', icon: Palette },
   { name: 'Настройки', href: '/admin/settings', icon: Settings },
