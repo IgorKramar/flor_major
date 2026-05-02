@@ -3,6 +3,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { ChevronRight } from "lucide-react"
+import { getRenderUrl } from "@/lib/image-url"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ProductGallery } from "@/components/product-gallery"
@@ -234,7 +235,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   >
                     <div className="relative aspect-[4/5] overflow-hidden">
                       <Image
-                        src={primaryImage(item)}
+                        src={getRenderUrl(primaryImage(item), { width: 600, quality: 80 })}
                         alt={item.title}
                         fill
                         sizes="(max-width: 1024px) 50vw, 25vw"

@@ -5,6 +5,7 @@ import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ProductImage } from "@/lib/supabase"
+import { getRenderUrl } from "@/lib/image-url"
 
 interface ProductGalleryProps {
   images: ProductImage[]
@@ -97,7 +98,7 @@ export function ProductGallery({ images, fallback, alt }: ProductGalleryProps) {
         aria-label={hasMany ? "Галерея фотографий товара" : undefined}
       >
         <Image
-          src={active.url}
+          src={getRenderUrl(active.url, { width: 1200, quality: 85 })}
           alt={active.alt ?? alt}
           fill
           priority
@@ -164,7 +165,7 @@ export function ProductGallery({ images, fallback, alt }: ProductGalleryProps) {
               )}
             >
               <Image
-                src={image.url}
+                src={getRenderUrl(image.url, { width: 200, quality: 80 })}
                 alt={image.alt ?? alt}
                 fill
                 sizes="120px"
