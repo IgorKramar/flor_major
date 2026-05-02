@@ -4,7 +4,13 @@
 
 ## [Unreleased]
 
-> Подготовка к миграции в РФ-инфраструктуру (152-ФЗ), Сценарий B: без публичной формы обратной связи. Соответствует ветке `migrate-cheap-stack` / [PR #4](https://github.com/IgorKramar/flor_major/pull/4). После мержа — переезд на self-hosted Supabase (планы A и C).
+Планируемые изменения фиксируйте здесь до релиза.
+
+---
+
+## [2026-05-02]
+
+> Подготовка к миграции в РФ-инфраструктуру (152-ФЗ), Сценарий B: без публичной формы обратной связи. После этого PR — переезд на self-hosted Supabase (планы A и C).
 
 ### Удалено
 
@@ -23,16 +29,6 @@
 - **`generateStaticParams` для `/catalog/[slug]`** — все товары пререндерятся при сборке, нет On-Demand ISR на первом хите (AUDIT B1.2).
 - **`unstable_cache` на 16 hot-path функций `lib/site-data.ts`** — главная и каталог при кэш-хите не дёргают Supabase 5–10 раз за рендер; общий тег `site-data`, revalidate 300 с (AUDIT B1.3).
 
-### Миграции (SQL)
-
-- `0027_remove_leads.sql` — снимает `public.leads` с realtime-публикации, DROP `leads` и `rate_limits` CASCADE.
-- `0028_remove_thanks_page.sql` — DROP `thanks_page_settings` CASCADE, DELETE seed'ов типографики `scope='thanks_page'`.
-- **Не применяются** к Supabase Cloud — лежат в репо для применения на новой self-hosted БД в плане C (cutover).
-
----
-
-## [2026-05-02]
-
 ### Документация
 
 - **План миграции в РФ-инфраструктуру** (152-ФЗ): четыре сценария разной зрелости в `docs/migration/`:
@@ -49,6 +45,12 @@
 ### Инфраструктура
 
 - Добавлен `mise.toml` с `node = "latest"` (нужно для совместимости с vitest 4.x под Node ≥ 25).
+
+### Миграции (SQL)
+
+- `0027_remove_leads.sql` — снимает `public.leads` с realtime-публикации, DROP `leads` и `rate_limits` CASCADE.
+- `0028_remove_thanks_page.sql` — DROP `thanks_page_settings` CASCADE, DELETE seed'ов типографики `scope='thanks_page'`.
+- **Не применяются** к Supabase Cloud — лежат в репо для применения на новой self-hosted БД в плане C (cutover).
 
 ---
 
