@@ -42,7 +42,6 @@ export default async function HomePage() {
         <ContactSection
           contact={data.contact}
           typography={typography}
-          thanksActive={data.thanksPage.is_active}
           themeStyle={buildSectionThemeStyle(data.landingSections.contact ?? null)}
         />
       </main>
