@@ -788,9 +788,186 @@ git commit -m "feat(admin): pre-upload компрессия + whitelist URL дл
 
 ---
 
-## Phase 4 — Verification
+## Phase 4 — Backfill уже загруженных файлов + Verification
 
-### Task 13: Финальный прогон + dev смок-тест
+### Task 13: Backfill — пересжать существующие 16 файлов в Storage
+
+**Files:**
+- Create: `scripts/backfill-storage-images.mjs`
+
+> **Подход без локального `sharp`:** используем встроенный transform в Supabase Storage `download(path, { transform: {...} })` — imgproxy на сервере сам отдаст webp. Скрипт затем перезаливает результат по тому же `path` с `upsert: true`. URL в БД не меняются, всё прозрачно для приложения.
+
+- [ ] **Step 1: Создать скрипт**
+
+```javascript
+// scripts/backfill-storage-images.mjs
+//
+// Пересжать все файлы в bucket `media` через Supabase Storage Renderer.
+// Скачивает каждый файл через transform { width: 1920, quality: 85 } —
+// imgproxy на сервере отдаёт webp. Перезаливает по тому же path с upsert.
+//
+// Запуск: mise exec -- node scripts/backfill-storage-images.mjs
+//
+// Требует .env.local с NEXT_PUBLIC_SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY.
+
+import { createClient } from '@supabase/supabase-js'
+import { readFileSync } from 'node:fs'
+
+// Загрузить .env.local руками (Node не делает это автоматически)
+const env = Object.fromEntries(
+  readFileSync('.env.local', 'utf8')
+    .split('\n')
+    .filter((l) => l && !l.startsWith('#'))
+    .map((l) => {
+      const i = l.indexOf('=')
+      return [l.slice(0, i).trim(), l.slice(i + 1).trim()]
+    }),
+)
+
+const URL = env.NEXT_PUBLIC_SUPABASE_URL
+const KEY = env.SUPABASE_SERVICE_ROLE_KEY
+if (!URL || !KEY) {
+  console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env.local')
+  process.exit(1)
+}
+
+const supabase = createClient(URL, KEY)
+const BUCKET = 'media'
+const MAX_DIM = 1920
+const QUALITY = 85
+
+async function listAll(prefix = '') {
+  const { data, error } = await supabase.storage.from(BUCKET).list(prefix, { limit: 1000 })
+  if (error) throw error
+  const out = []
+  for (const item of data) {
+    const fullPath = prefix ? `${prefix}/${item.name}` : item.name
+    if (item.id == null) {
+      // Папка — рекурсивно
+      out.push(...(await listAll(fullPath)))
+    } else {
+      out.push({ path: fullPath, size: item.metadata?.size ?? 0, mime: item.metadata?.mimetype ?? '' })
+    }
+  }
+  return out
+}
+
+async function processFile(file) {
+  // SVG/GIF не трогаем — векторы/анимации испортятся
+  if (file.mime.includes('svg') || file.mime.includes('gif')) {
+    return { skipped: `mime ${file.mime}` }
+  }
+  // Уже webp и небольшой — пропускаем
+  if (file.mime === 'image/webp' && file.size < 500_000) {
+    return { skipped: 'already small webp' }
+  }
+
+  // Скачиваем через imgproxy на сервере (transform → webp)
+  const { data: blob, error: dlErr } = await supabase.storage.from(BUCKET).download(file.path, {
+    transform: { width: MAX_DIM, quality: QUALITY },
+  })
+  if (dlErr) throw dlErr
+  const compressed = Buffer.from(await blob.arrayBuffer())
+
+  // Перезаливаем по тому же path
+  const { error: upErr } = await supabase.storage.from(BUCKET).upload(file.path, compressed, {
+    contentType: 'image/webp',
+    upsert: true,
+    cacheControl: '31536000',
+  })
+  if (upErr) throw upErr
+
+  return {
+    original: file.size,
+    compressed: compressed.length,
+    saved: Math.round((1 - compressed.length / file.size) * 100),
+  }
+}
+
+console.log(`Listing ${BUCKET}...`)
+const files = await listAll()
+console.log(`Found ${files.length} files\n`)
+
+let totalBefore = 0
+let totalAfter = 0
+let processed = 0
+let skipped = 0
+let failed = 0
+
+for (const f of files) {
+  try {
+    const r = await processFile(f)
+    if (r.skipped) {
+      console.log(`SKIP ${f.path} — ${r.skipped}`)
+      skipped++
+      continue
+    }
+    console.log(
+      `OK   ${f.path} — ${(r.original / 1024).toFixed(0)} KB → ${(r.compressed / 1024).toFixed(0)} KB (-${r.saved}%)`,
+    )
+    totalBefore += r.original
+    totalAfter += r.compressed
+    processed++
+  } catch (e) {
+    console.error(`FAIL ${f.path} — ${e.message}`)
+    failed++
+  }
+}
+
+console.log(
+  `\nDone. processed=${processed} skipped=${skipped} failed=${failed}` +
+    `\nTotal size: ${(totalBefore / 1024 / 1024).toFixed(1)} MB → ${(totalAfter / 1024 / 1024).toFixed(1)} MB` +
+    `\nSaved: ${(((totalBefore - totalAfter) / totalBefore) * 100).toFixed(0)}%`,
+)
+```
+
+- [ ] **Step 2: Прогнать**
+
+Run:
+```bash
+mise exec -- node scripts/backfill-storage-images.mjs
+```
+Expected: вывод вида:
+```
+Listing media...
+Found 16 files
+
+OK   categories/1776596144622-ftnk10.jpg — 498 KB → 87 KB (-83%)
+OK   categories/1777039554701-u9m3jt.png — 3070 KB → 124 KB (-96%)
+...
+Done. processed=16 skipped=0 failed=0
+Total size: 39.2 MB → 1.8 MB
+Saved: 95%
+```
+
+> Если скрипт падает с network error — Storage не справился с трансформом (возможно imgproxy OOM на больших PNG). В этом случае: запустить ещё раз (идемпотентно), проверить `docker logs supabase-imgproxy` на сервере, увеличить лимит памяти imgproxy в `docker-compose.override.yml` (с 256M до 512M).
+
+- [ ] **Step 3: Проверить, что одна из картинок реально обновилась**
+
+Run:
+```bash
+curl -sI "https://db.flormajor-omsk.ru/storage/v1/object/public/media/products/1776451722913-4oj9bm.png" 2>&1 | grep -iE "content-type|content-length"
+```
+Expected:
+```
+content-type: image/webp
+content-length: <small number>
+```
+
+> Расширение в URL осталось `.png`, но **content-type теперь `image/webp`** — браузер ориентируется на content-type, не на extension, всё работает корректно.
+
+- [ ] **Step 4: Закоммитить скрипт**
+
+```bash
+git add scripts/backfill-storage-images.mjs
+git commit -m "chore: backfill-скрипт для пересжатия существующих файлов в Storage"
+```
+
+> Скрипт остаётся в репо: пригодится при следующих миграциях / после массового аплоада.
+
+---
+
+### Task 14: Финальный прогон + dev смок-тест
 
 **Files:** read-only / dev server
 
@@ -864,13 +1041,14 @@ git push -u origin optimize-images
 - [ ] Dev-сервер: на главной картинки идут через render URL, размер в Network — десятки/сотни КБ.
 - [ ] Админ: загрузка тяжёлого JPG → файл в Storage становится сжатым webp.
 - [ ] Whitelist URL блокирует чужие домены.
+- [ ] **Backfill пройден на 16 файлах** — суммарный размер `media` упал на 80%+ (с ~40 МБ до ~2-5 МБ). Bucket теперь содержит сжатые webp.
+- [ ] `scripts/backfill-storage-images.mjs` закоммичен в репо.
 - [ ] Ветка `optimize-images` запушена в origin.
 
 ---
 
 ## Что НЕ делается в этом плане
 
-- **Backfill старых картинок.** Уже загруженные оригиналы остаются как есть (Storage всё равно их теперь отдаёт через render URL). При следующей перезаливке через админку они автоматически станут сжатыми webp.
-- **Server-side `sharp` компрессия.** Не нужна при наличии imgproxy на отдаче и pre-upload компрессии на загрузке.
-- **Изменения схемы БД.** Поля `image_url`/`url` хранят полный URL без изменений.
+- **Server-side `sharp` компрессия в коде приложения.** Не нужна при наличии imgproxy на отдаче и pre-upload компрессии на загрузке. Скрипт backfill использует тот же imgproxy через `download({ transform })` — `sharp` не подключается как зависимость.
+- **Изменения схемы БД.** Поля `image_url`/`url` хранят полный URL без изменений (после backfill content поменялся, path тот же).
 - **Перенос приложения на Timeweb VM.** Это план D, отдельным PR.
