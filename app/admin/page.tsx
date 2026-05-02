@@ -1,68 +1,59 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Package, Users, TrendingUp, Eye } from 'lucide-react'
+import { Package, Star, Calendar } from 'lucide-react'
 import Link from 'next/link'
-import { toast } from 'sonner'
 import { useAuth } from '@/lib/auth-context'
-import type { Tables } from '@/lib/database.types'
-
-type Lead = Tables<'leads'>
 
 interface DashboardStats {
   totalProducts: number
-  totalLeads: number
-  newLeadsToday: number
   featuredProducts: number
+  lastUpdatedAt: string | null
+}
+
+interface RecentProduct {
+  id: number
+  title: string
+  slug: string
+  updated_at: string
 }
 
 export default function AdminDashboard() {
   const { supabase } = useAuth()
   const [stats, setStats] = useState<DashboardStats>({
     totalProducts: 0,
-    totalLeads: 0,
-    newLeadsToday: 0,
     featuredProducts: 0,
+    lastUpdatedAt: null,
   })
   const [loading, setLoading] = useState(true)
-  const [recentLeads, setRecentLeads] = useState<Lead[]>([])
+  const [recentProducts, setRecentProducts] = useState<RecentProduct[]>([])
 
   const loadDashboardData = useCallback(async () => {
     try {
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-
       const [
         { count: productsCount },
         { count: featuredCount },
-        { count: leadsCount },
-        { count: todayCount },
-        { data: leads },
+        { data: recent },
       ] = await Promise.all([
         supabase.from('products').select('*', { count: 'exact', head: true }),
         supabase
           .from('products')
           .select('*', { count: 'exact', head: true })
           .eq('is_featured', true),
-        supabase.from('leads').select('*', { count: 'exact', head: true }),
         supabase
-          .from('leads')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', today.toISOString()),
-        supabase
-          .from('leads')
-          .select('*')
-          .order('created_at', { ascending: false })
+          .from('products')
+          .select('id, title, slug, updated_at')
+          .order('updated_at', { ascending: false })
           .limit(5),
       ])
 
+      const recentList = (recent ?? []) as RecentProduct[]
       setStats({
         totalProducts: productsCount ?? 0,
-        totalLeads: leadsCount ?? 0,
-        newLeadsToday: todayCount ?? 0,
         featuredProducts: featuredCount ?? 0,
+        lastUpdatedAt: recentList[0]?.updated_at ?? null,
       })
-      setRecentLeads(leads ?? [])
+      setRecentProducts(recentList)
     } catch (error) {
       console.error('Error loading dashboard data:', error)
     } finally {
@@ -72,25 +63,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     loadDashboardData()
-    const channel = supabase
-      .channel('dashboard-leads')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'leads' },
-        (payload) => {
-          const lead = payload.new as Lead
-          toast.success(`Новая заявка от ${lead.name}`, {
-            description: lead.phone,
-          })
-          loadDashboardData()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [supabase, loadDashboardData])
+  }, [loadDashboardData])
 
   const statCards = [
     {
@@ -102,27 +75,21 @@ export default function AdminDashboard() {
       href: '/admin/products',
     },
     {
-      name: 'Всего заявок',
-      value: stats.totalLeads,
-      icon: Users,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      href: '/admin/leads',
-    },
-    {
-      name: 'Заявок сегодня',
-      value: stats.newLeadsToday,
-      icon: TrendingUp,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      href: '/admin/leads',
-    },
-    {
       name: 'Избранных товаров',
       value: stats.featuredProducts,
-      icon: Eye,
+      icon: Star,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
+      href: '/admin/products',
+    },
+    {
+      name: 'Последнее обновление',
+      value: stats.lastUpdatedAt
+        ? new Date(stats.lastUpdatedAt).toLocaleDateString('ru-RU')
+        : '—',
+      icon: Calendar,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
       href: '/admin/products',
     },
   ]
@@ -144,7 +111,7 @@ export default function AdminDashboard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {statCards.map((stat) => {
           const Icon = stat.icon
           return (
@@ -172,24 +139,24 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 sm:p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Последние заявки
+            Последние обновлённые товары
           </h2>
-          {recentLeads.length === 0 ? (
-            <p className="text-gray-500 text-sm">Заявок пока нет</p>
+          {recentProducts.length === 0 ? (
+            <p className="text-gray-500 text-sm">Товаров пока нет</p>
           ) : (
             <div className="space-y-3">
-              {recentLeads.map((lead) => (
+              {recentProducts.map((p) => (
                 <Link
-                  key={lead.id}
-                  href={`/admin/leads?id=${lead.id}`}
+                  key={p.id}
+                  href={`/admin/products?id=${p.id}`}
                   className="flex items-center justify-between gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-900 truncate">{lead.name}</p>
-                    <p className="text-sm text-gray-600 truncate">{lead.phone}</p>
+                    <p className="font-medium text-gray-900 truncate">{p.title}</p>
+                    <p className="text-sm text-gray-600 truncate">/catalog/{p.slug}</p>
                   </div>
                   <span className="text-xs text-gray-500 flex-shrink-0 whitespace-nowrap">
-                    {new Date(lead.created_at).toLocaleDateString('ru-RU')}
+                    {new Date(p.updated_at).toLocaleDateString('ru-RU')}
                   </span>
                 </Link>
               ))}
