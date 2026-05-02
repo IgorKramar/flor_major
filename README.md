@@ -6,6 +6,12 @@ Next.js 16 + Supabase: публичный лендинг цветочного м
 
 **Права на код:** проприетарная лицензия, см. [LICENSE.md](LICENSE.md).
 
+## Документация
+
+- **[Миграция в РФ-инфраструктуру](docs/migration/README.md)** — план переезда на self-host Supabase для соблюдения 152-ФЗ. Текущий сценарий — CHEAP (Timeweb VM + self-host Supabase, ~1 100 ₽/мес). На будущее — K3s-платформа и гибрид с homelab.
+- **[Аудит кодовой базы (май 2026)](docs/audit/2026-05-audit.md)** — баги, производительность, безопасность.
+- **[Spec миграции (текущий)](docs/superpowers/specs/2026-05-02-cheap-migration-design.md)** — принятый в брайнсторме дизайн миграции с уточнениями.
+
 ## Стек
 
 - **Next.js 16** (App Router, Server Components)
