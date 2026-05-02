@@ -1,5 +1,19 @@
 # План C: cutover — перенос данных и переключение ФлорМажора на self-hosted Supabase
 
+> **⚠️ СТАТУС НА 2026-05-02: Phases 0–5 ВЫПОЛНЕНЫ. Phase 6 и 7 заменены планом D.**
+>
+> При выполнении выяснилось:
+> - Бесплатный тариф Onreza исчерпан (20 мин build/мес), владелица не может публиковать обновления.
+> - Бюджет 1182 ₽/мес не позволяет переход на платный Onreza.
+> - Решение: Next.js приложение тоже переезжает на Timeweb VM (single-VM архитектура).
+> - Phases 6 (cutover env в Onreza) и 7 (post-cutover) этого плана **заменены планом D** (`2026-05-XX-app-migration-to-vm.md`).
+> - Реальный cutover публичного сайта будет через DNS swap apex `flormajor-omsk.ru` (с Onreza IP на Timeweb 77.232.129.172) после деплоя приложения на VM.
+>
+> Также при выполнении было добавлено:
+> - `supabase/migrations/0000_init_legacy_tables.sql` — минимальный DDL для `products`/`hero_settings`/`leads`/`site_config`, без него миграции 0004-0006 падают.
+> - `supabase/migrations/0029_grant_data_api.sql` — гранты для `anon`/`authenticated` (Cloud делает это через UI, self-host надо явно).
+> - Перенос Storage media — через REST API upload, а не rclone copy (Storage хранит как `path/<version-uuid>`, не как файл напрямую). См. memory `feedback_supabase_storage_file_layout.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Перенести схему `public`, данные (без `leads`/`rate_limits`/`thanks_page_settings`) и storage-медиа с Supabase Cloud на self-hosted Supabase (`db.flormajor-omsk.ru`), создать нового admin-пользователя, переключить env в Onreza, выполнить cutover публичного сайта с минимальным даунтаймом.
