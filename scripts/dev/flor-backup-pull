@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Стянуть свежие бэкапы из Timeweb S3 в ~/Backups/flormajor/
+# Запускать раз в неделю как offsite-копия (см. spec § 3.6).
+
+LOCAL_DIR="${HOME}/Backups/flormajor"
+mkdir -p "$LOCAL_DIR"
+
+echo "🟢 Стягиваю бэкапы Flormajor из Timeweb S3 в $LOCAL_DIR..."
+rclone copy timeweb-s3:flor-backups "$LOCAL_DIR" --progress --max-age 14d
+
+echo "✅ Готово. Содержимое:"
+ls -lah "$LOCAL_DIR" | tail -20
