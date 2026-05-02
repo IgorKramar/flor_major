@@ -5,6 +5,8 @@ import Image from 'next/image'
 import { ArrowDown, ArrowUp, Star, Trash2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/lib/auth-context'
+import { compressImage } from '@/lib/image-compress'
+import { getRenderUrl, isAllowedImageUrl } from '@/lib/image-url'
 
 export interface EditorImage {
   id?: number
@@ -40,15 +42,20 @@ export function ProductImagesEditor({
           toast.error(`Пропущено: ${file.name} — не изображение`)
           continue
         }
-        if (file.size > 5 * 1024 * 1024) {
-          toast.error(`Пропущено: ${file.name} — больше 5 МБ`)
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(`Пропущено: ${file.name} — больше 10 МБ`)
           continue
         }
-        const ext = file.name.split('.').pop() ?? 'jpg'
+        const compressed = await compressImage(file)
+        const ext = compressed.name.split('.').pop() ?? 'webp'
         const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
         const { error } = await supabase.storage
           .from('media')
-          .upload(path, file, { cacheControl: '31536000', upsert: false })
+          .upload(path, compressed, {
+            cacheControl: '31536000',
+            upsert: false,
+            contentType: compressed.type,
+          })
         if (error) {
           console.error(error)
           toast.error(`Не удалось загрузить ${file.name}`)
@@ -104,10 +111,8 @@ export function ProductImagesEditor({
   const addByUrl = () => {
     const url = prompt('URL изображения')?.trim()
     if (!url) return
-    try {
-      new URL(url)
-    } catch {
-      toast.error('Некорректный URL')
+    if (!isAllowedImageUrl(url)) {
+      toast.error('URL не из разрешённого списка хостов')
       return
     }
     onChange(
@@ -172,7 +177,7 @@ export function ProductImagesEditor({
             >
               <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                 <Image
-                  src={image.url}
+                  src={getRenderUrl(image.url, { width: 160, quality: 80 })}
                   alt={image.alt ?? ''}
                   fill
                   sizes="80px"
