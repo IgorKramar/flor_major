@@ -12,7 +12,7 @@ export default [
       'coverage/**',
       'next-env.d.ts',
       'lib/database.types.ts',
-      '*.config.{js,mjs,ts}',
+      '*.config.{js,mjs,cjs,ts}',
     ],
   },
   js.configs.recommended,
