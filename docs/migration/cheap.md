@@ -3,8 +3,8 @@
 > Самый дешёвый вариант с соблюдением 152-ФЗ: ~1 100 ₽/мес доп. к текущему. Срок установки 2–3 рабочих дня.
 >
 > Связанные документы:
-> - [`MIGRATION-RU.md`](MIGRATION-RU.md) — общая логика миграции (Сценарий B: без формы лидов)
-> - [`AUDIT.md`](AUDIT.md) — баги, которые удобно закрыть в этом же спринте
+> - [`overview.md`](overview.md) — общая логика миграции (Сценарий B: без формы лидов)
+> - [`../audit/2026-05-audit.md`](../audit/2026-05-audit.md) — баги, которые удобно закрыть в этом же спринте
 
 ## 0. Что получится в итоге
 
@@ -464,7 +464,7 @@ crontab -e
 Положить файл, описанный в **§9**, в `supabase/migrations/`.
 
 ### 12.3. Заодно (опционально, но просится)
-P0-пункты из `AUDIT.md`:
+P0-пункты из [`../audit/2026-05-audit.md`](../audit/2026-05-audit.md):
 - `components/ui/use-mobile.tsx` — починить hydration
 - `components/header.tsx` — cleanup `body.overflow` на unmount
 - `app/admin/products/page.tsx:295-296` — добавить `revalidateSiteCache('/catalog/${slug}')`
@@ -542,7 +542,7 @@ SUPABASE_SERVICE_ROLE_KEY=<новый SERVICE_ROLE_KEY>
 - ❌ Договор оператор/обработчик с Timeweb по части посетительских ПД (их нет).
 - ❌ Аттестация ФСТЭК / модель угроз.
 
-Подробнее — в разделе 0 `MIGRATION-RU.md`.
+Подробнее — в разделе 0 [`overview.md`](overview.md).
 
 ---
 
@@ -558,8 +558,8 @@ SUPABASE_SERVICE_ROLE_KEY=<новый SERVICE_ROLE_KEY>
 
 ## 17. Куда расти
 
-- **Свой PaaS на K3s** — `PLATFORM-RU.md` (когда проектов будет 3+).
-- **Гибрид с дачей** — `HOMELAB-RU.md` (когда захочется свою железяку).
+- **Свой PaaS на K3s** — [`platform-future.md`](platform-future.md) (когда проектов будет 3+).
+- **Гибрид с дачей** — [`homelab-future.md`](homelab-future.md) (когда захочется свою железяку).
 - **Headless со снэпшотами** — добавить генерацию JSON в S3 после save в админке, public site читает оттуда. Снижает нагрузку на VM, делает public-сайт независимым от uptime Postgres.
 
 Этот стек — фундамент. От него можно идти куда угодно.

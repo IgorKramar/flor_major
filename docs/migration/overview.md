@@ -117,7 +117,7 @@ Self-host Supabase выбран потому, что админка-констр
 ### Фаза 6. После миграции (3–5 дней)
 - [ ] Опубликовать политику обработки ПД на `/privacy`, ссылка в футере.
 - [ ] Настроить retention логов nginx/Caddy (≤ 7 дней).
-- [ ] Включить заголовки безопасности (CSP, HSTS) — см. `AUDIT.md` C1.
+- [ ] Включить заголовки безопасности (CSP, HSTS) — см. [`../audit/2026-05-audit.md`](../audit/2026-05-audit.md) C1.
 - [ ] Проверить, что Studio Supabase / SSH доступны только по VPN/whitelist.
 - [ ] Запросить у Supabase / Onreza подтверждение удаления данных.
 
@@ -174,7 +174,7 @@ DROP TABLE IF EXISTS public.rate_limits CASCADE;
   CSP подкрутить под Я.Метрику, если будет добавлена.
 
 ### 3.4. Прочее (заодно с миграцией)
-- Хорошее время закрыть P0/P1 пункты из `AUDIT.md`: hydration в `use-mobile`, `body.overflow` cleanup в header, `unstable_cache` в `lib/site-data.ts`, `generateStaticParams` для `/catalog/[slug]`. Эти правки не блокируют миграцию, но логично сделать одним заходом.
+- Хорошее время закрыть P0/P1 пункты из [`../audit/2026-05-audit.md`](../audit/2026-05-audit.md): hydration в `use-mobile`, `body.overflow` cleanup в header, `unstable_cache` в `lib/site-data.ts`, `generateStaticParams` для `/catalog/[slug]`. Эти правки не блокируют миграцию, но логично сделать одним заходом.
 
 ---
 

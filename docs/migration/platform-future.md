@@ -168,7 +168,7 @@
   6. вывести готовые env для приложения (URL Supabase, ключи).
 - [ ] Документировать процесс в `docs/onboarding.md`.
 
-### Фаза 6. Перевод ФлорМажора (см. `MIGRATION-RU.md`) (3–5 дней)
+### Фаза 6. Перевод ФлорМажора (см. [`overview.md`](overview.md)) (3–5 дней)
 - [ ] `scripts/new-project.sh flor-major`.
 - [ ] Применить `supabase/migrations/0001..0026` + `0027_remove_leads.sql` в новый Postgres.
 - [ ] Задеплоить Next.js через Kubero → подвязать домен `flormajor-omsk.ru`.
@@ -285,7 +285,7 @@ psql "$SUPABASE_DB_URL" -f migrations/*.sql
 
 ## 11. Связанные документы
 
-- [`AUDIT.md`](AUDIT.md) — аудит кодовой базы ФлорМажор (баги, перфоманс, безопасность).
-- [`CHEAP-RU.md`](CHEAP-RU.md) — минимальный legal-сценарий: одна VM в Timeweb + self-host Supabase в Docker Compose, ~1 100 ₽/мес. Подходит, пока проектов мало.
-- [`MIGRATION-RU.md`](MIGRATION-RU.md) — частный план миграции ФлорМажора как первого тенанта на эту платформу (сценарий B: без формы лидов).
-- [`HOMELAB-RU.md`](HOMELAB-RU.md) — гибридное расширение: дачный K3s-кластер как homelab + бэкап-партнёр для облачной платформы.
+- [`../audit/2026-05-audit.md`](../audit/2026-05-audit.md) — аудит кодовой базы ФлорМажор (баги, перфоманс, безопасность).
+- [`cheap.md`](cheap.md) — минимальный legal-сценарий: одна VM в Timeweb + self-host Supabase в Docker Compose, ~1 100 ₽/мес. Подходит, пока проектов мало.
+- [`overview.md`](overview.md) — частный план миграции ФлорМажора как первого тенанта на эту платформу (сценарий B: без формы лидов).
+- [`homelab-future.md`](homelab-future.md) — гибридное расширение: дачный K3s-кластер как homelab + бэкап-партнёр для облачной платформы.
