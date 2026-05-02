@@ -3,6 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 import type { HeroSettings } from "@/lib/supabase"
 import { typoStyle, type TypoMap } from "@/lib/typography"
+import { getRenderUrl } from "@/lib/image-url"
 
 interface HeroSectionProps {
   hero: HeroSettings | null
@@ -98,7 +99,7 @@ export function HeroSection({ hero, typography, themeStyle }: HeroSectionProps) 
 
           <div className="relative order-first md:order-last mx-auto w-full max-w-sm sm:max-w-md md:max-w-none">
             <Image
-              src={image}
+              src={getRenderUrl(image, { width: 1920, quality: 80 })}
               alt={alt}
               width={800}
               height={1000}

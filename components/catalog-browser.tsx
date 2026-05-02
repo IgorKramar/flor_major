@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Search } from "lucide-react"
+import { getRenderUrl } from "@/lib/image-url"
 import type {
   CatalogPageSettings,
   Category,
@@ -248,7 +249,7 @@ export function CatalogBrowser({
                     </span>
                   ) : null}
                   <Image
-                    src={image}
+                    src={getRenderUrl(image, { width: 600, quality: 80 })}
                     alt={product.title}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, type CSSProperties } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { getRenderUrl } from "@/lib/image-url"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ProductWithImages } from "@/lib/supabase"
@@ -170,7 +171,7 @@ export function ProductCarousel({
                         </span>
                       )}
                       <Image
-                        src={image}
+                        src={getRenderUrl(image, { width: 800, quality: 80 })}
                         alt={`${product.title}${
                           product.description ? ` — ${product.description}` : ""
                         }`}

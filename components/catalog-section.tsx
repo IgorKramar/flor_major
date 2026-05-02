@@ -3,6 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { getIcon } from "@/lib/icons"
 import type { Category } from "@/lib/supabase"
+import { getRenderUrl } from "@/lib/image-url"
 import { typoStyle, type TypoMap } from "@/lib/typography"
 
 interface CatalogSectionProps {
@@ -65,7 +66,7 @@ export function CatalogSection({
                   aria-label={`Смотреть каталог: ${item.name}`}
                 >
                   <Image
-                    src={item.image_url as string}
+                    src={getRenderUrl(item.image_url, { width: 600, quality: 80 })}
                     alt={item.image_alt ?? item.name}
                     fill
                     sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"

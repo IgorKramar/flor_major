@@ -5,6 +5,8 @@ import { Upload, X, Link as LinkIcon } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { useAuth } from '@/lib/auth-context'
+import { compressImage } from '@/lib/image-compress'
+import { getRenderUrl, isAllowedImageUrl } from '@/lib/image-url'
 
 interface ImageUploadProps {
   value?: string | null
@@ -30,23 +32,28 @@ export function ImageUpload({
       toast.error('Можно загружать только изображения')
       return
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Файл больше 5 МБ')
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Файл больше 10 МБ')
       return
     }
 
     setUploading(true)
     try {
-      const ext = file.name.split('.').pop() ?? 'jpg'
+      const compressed = await compressImage(file)
+      const ext = compressed.name.split('.').pop() ?? 'webp'
       const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
       const { error } = await supabase.storage
         .from('media')
-        .upload(path, file, { cacheControl: '31536000', upsert: false })
+        .upload(path, compressed, {
+          cacheControl: '31536000',
+          upsert: false,
+          contentType: compressed.type,
+        })
       if (error) throw error
       const { data } = supabase.storage.from('media').getPublicUrl(path)
       onChange(data.publicUrl)
       setManualUrl(data.publicUrl)
-      toast.success('Изображение загружено')
+      toast.success(`Изображение загружено (${(compressed.size / 1024).toFixed(0)} КБ)`)
     } catch (error) {
       console.error('upload error', error)
       toast.error('Не удалось загрузить файл')
@@ -62,7 +69,7 @@ export function ImageUpload({
         {value ? (
           <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
             <Image
-              src={value}
+              src={getRenderUrl(value, { width: 256, quality: 80 })}
               alt="preview"
               fill
               sizes="128px"
@@ -121,7 +128,18 @@ export function ImageUpload({
             </div>
             <button
               type="button"
-              onClick={() => onChange(manualUrl || null)}
+              onClick={() => {
+                const trimmed = manualUrl.trim()
+                if (!trimmed) {
+                  onChange(null)
+                  return
+                }
+                if (!isAllowedImageUrl(trimmed)) {
+                  toast.error('URL не из разрешённого списка хостов')
+                  return
+                }
+                onChange(trimmed)
+              }}
               className="px-3 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800"
             >
               Применить
