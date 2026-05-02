@@ -14,7 +14,7 @@ ln -sf /opt/flormajor/shared/.env "$RELEASE/.env"
 
 ln -sfn "$RELEASE" /opt/flormajor/current
 
-pm2 reload flormajor --update-env
+pm2 reload /opt/flormajor/shared/ecosystem.config.cjs --update-env
 
 for i in {1..15}; do
   if curl -fs http://127.0.0.1:3000/api/health >/dev/null; then
