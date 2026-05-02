@@ -4,7 +4,51 @@
 
 ## [Unreleased]
 
-Планируемые изменения фиксируйте здесь до релиза.
+> Подготовка к миграции в РФ-инфраструктуру (152-ФЗ), Сценарий B: без публичной формы обратной связи. Соответствует ветке `migrate-cheap-stack` / [PR #4](https://github.com/IgorKramar/flor_major/pull/4). После мержа — переезд на self-hosted Supabase (планы A и C).
+
+### Удалено
+
+- **Публичная форма обратной связи** на главной (`components/contact-form.tsx`, `app/actions/submit-lead.ts`, лидовские схемы валидации, тип `Lead`, тесты на `leadSchema`).
+- **Раздел «Заявки» в админке** (`app/admin/leads/`) и связанный пункт sidebar.
+- **Страница `/thanks`** (`app/thanks/page.tsx`) и её админ-раздел (`app/admin/thanks/`), `thanksPageSettingsSchema`, `getThanksPageSettings`, тип `ThanksPageSettings`, registry-запись типографики `scope='thanks_page'`.
+- Зависимости от Telegram (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) и rate-limit'а (`RATE_LIMIT_SALT`).
+
+### Изменено
+
+- **Контактная секция** (`components/contact-section.tsx`): вместо узкой одноколоночной вёрстки рядом с формой — три центрированные карточки на десктопе (адрес / телефон / email-мессенджеры) с увеличенными иконками и текстом. На мобильном — одна колонка по центру.
+- **Дашборд админки** (`app/admin/page.tsx`): вместо «Заявок» теперь виджет «Последние обновлённые товары» (5 шт. по `products.updated_at desc`); три stat-карточки на основе товаров (Всего букетов / Избранных / Последнее обновление); удалён Realtime-канал `dashboard-leads`.
+
+### Производительность
+
+- **`generateStaticParams` для `/catalog/[slug]`** — все товары пререндерятся при сборке, нет On-Demand ISR на первом хите (AUDIT B1.2).
+- **`unstable_cache` на 16 hot-path функций `lib/site-data.ts`** — главная и каталог при кэш-хите не дёргают Supabase 5–10 раз за рендер; общий тег `site-data`, revalidate 300 с (AUDIT B1.3).
+
+### Миграции (SQL)
+
+- `0027_remove_leads.sql` — снимает `public.leads` с realtime-публикации, DROP `leads` и `rate_limits` CASCADE.
+- `0028_remove_thanks_page.sql` — DROP `thanks_page_settings` CASCADE, DELETE seed'ов типографики `scope='thanks_page'`.
+- **Не применяются** к Supabase Cloud — лежат в репо для применения на новой self-hosted БД в плане C (cutover).
+
+---
+
+## [2026-05-02]
+
+### Документация
+
+- **План миграции в РФ-инфраструктуру** (152-ФЗ): четыре сценария разной зрелости в `docs/migration/`:
+  - `cheap.md` — текущий принятый: Timeweb VM + self-host Supabase в Docker Compose, ~1 100 ₽/мес.
+  - `overview.md` — общая логика Сценария B (без формы лидов).
+  - `platform-future.md` — на будущее: K3s-PaaS под несколько проектов.
+  - `homelab-future.md` — на будущее: гибрид с дачным K3s.
+  - `README.md` — индекс документов.
+- **Аудит кодовой базы** (`docs/audit/2026-05-audit.md`): обзорный аудит багов, перфоманса и безопасности. Используется как источник P0/P1 пунктов для следующих PR.
+- **Spec миграции** (`docs/superpowers/specs/2026-05-02-cheap-migration-design.md`): принятый дизайн миграции с уточнениями к `cheap.md` (shrink Supabase под 4 ГБ, Studio on-demand через SSH-туннель, бэкапы 6 ч/14 д в Timeweb S3 + локальный pull, scope ветки `migrate-cheap-stack`, работа без SMTP).
+- **Implementation plan** (`docs/superpowers/plans/2026-05-02-code-remove-leads-form.md`): пошаговый план для ветки `migrate-cheap-stack`.
+- В корневой `README.md` добавлен раздел «Документация» со ссылками.
+
+### Инфраструктура
+
+- Добавлен `mise.toml` с `node = "latest"` (нужно для совместимости с vitest 4.x под Node ≥ 25).
 
 ---
 
