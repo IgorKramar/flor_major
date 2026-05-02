@@ -61,12 +61,12 @@ export function ContactSection({
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground mb-5">
                     <MapPin className="w-7 h-7 sm:w-9 sm:h-9" aria-hidden="true" />
                   </div>
-                  <h3 className="font-medium mb-2 text-lg sm:text-xl" style={labelStyle}>
+                  <h3 className="font-medium mb-2 text-lg sm:text-xl" style={{ ...labelStyle, textAlign: 'center' }}>
                     Адрес
                   </h3>
                   <p
                     className="text-muted-foreground text-base sm:text-lg break-words"
-                    style={valueStyle}
+                    style={{ ...valueStyle, textAlign: 'center' }}
                   >
                     {contact.address}
                     {contact.working_hours && (
@@ -85,12 +85,12 @@ export function ContactSection({
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground mb-5">
                   <Phone className="w-7 h-7 sm:w-9 sm:h-9" aria-hidden="true" />
                 </div>
-                <h3 className="font-medium mb-2 text-lg sm:text-xl" style={labelStyle}>
+                <h3 className="font-medium mb-2 text-lg sm:text-xl" style={{ ...labelStyle, textAlign: 'center' }}>
                   Телефон
                 </h3>
                 <p
                   className="text-muted-foreground text-base sm:text-lg break-words"
-                  style={valueStyle}
+                  style={{ ...valueStyle, textAlign: 'center' }}
                 >
                   <a
                     href={telHref(contact.phone_primary)}
@@ -118,12 +118,12 @@ export function ContactSection({
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground mb-5">
                   <Mail className="w-7 h-7 sm:w-9 sm:h-9" aria-hidden="true" />
                 </div>
-                <h3 className="font-medium mb-2 text-lg sm:text-xl" style={labelStyle}>
+                <h3 className="font-medium mb-2 text-lg sm:text-xl" style={{ ...labelStyle, textAlign: 'center' }}>
                   Email & Мессенджеры
                 </h3>
                 <p
                   className="text-muted-foreground text-base sm:text-lg break-words"
-                  style={valueStyle}
+                  style={{ ...valueStyle, textAlign: 'center' }}
                 >
                   {contact.email && (
                     <a
