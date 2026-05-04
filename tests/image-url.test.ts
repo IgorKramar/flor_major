@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getRenderUrl, isAllowedImageUrl } from '@/lib/image-url'
+import { getRenderUrl, isAllowedImageUrl, extractStoragePath } from '@/lib/image-url'
 
 describe('getRenderUrl', () => {
   const SUPA_URL =
@@ -65,5 +65,81 @@ describe('isAllowedImageUrl', () => {
   it('rejects other protocols', () => {
     expect(isAllowedImageUrl('data:image/png;base64,abc')).toBe(false)
     expect(isAllowedImageUrl('file:///etc/passwd')).toBe(false)
+  })
+})
+
+describe('extractStoragePath', () => {
+  it('returns null for null/undefined/empty', () => {
+    expect(extractStoragePath(null, 'media')).toBeNull()
+    expect(extractStoragePath(undefined, 'media')).toBeNull()
+    expect(extractStoragePath('', 'media')).toBeNull()
+  })
+
+  it('returns null for non-Storage URLs', () => {
+    expect(extractStoragePath('https://images.unsplash.com/photo-1234', 'media')).toBeNull()
+    expect(extractStoragePath('https://example.com/file.jpg', 'media')).toBeNull()
+  })
+
+  it('extracts path from object/public URL', () => {
+    expect(
+      extractStoragePath(
+        'https://db.flormajor-omsk.ru/storage/v1/object/public/media/products/file.png',
+        'media',
+      ),
+    ).toBe('products/file.png')
+  })
+
+  it('extracts path from render/image/public URL (with query)', () => {
+    expect(
+      extractStoragePath(
+        'https://db.flormajor-omsk.ru/storage/v1/render/image/public/media/products/file.png?width=800',
+        'media',
+      ),
+    ).toBe('products/file.png')
+  })
+
+  it('strips query params from object URLs as well', () => {
+    expect(
+      extractStoragePath(
+        'https://db.flormajor-omsk.ru/storage/v1/object/public/media/misc/og.jpg?v=2',
+        'media',
+      ),
+    ).toBe('misc/og.jpg')
+  })
+
+  it('returns null when bucket does not match', () => {
+    expect(
+      extractStoragePath(
+        'https://db.flormajor-omsk.ru/storage/v1/object/public/avatars/user.png',
+        'media',
+      ),
+    ).toBeNull()
+  })
+
+  it('handles legacy Cloud URLs (different host, same shape) when bucket matches', () => {
+    expect(
+      extractStoragePath(
+        'https://gaojqaqpreuvcwxmngqp.supabase.co/storage/v1/object/public/media/products/old.jpg',
+        'media',
+      ),
+    ).toBe('products/old.jpg')
+  })
+
+  it('returns null for empty path under bucket', () => {
+    expect(
+      extractStoragePath(
+        'https://db.flormajor-omsk.ru/storage/v1/object/public/media/',
+        'media',
+      ),
+    ).toBeNull()
+  })
+
+  it('returns null for query-only after bucket', () => {
+    expect(
+      extractStoragePath(
+        'https://db.flormajor-omsk.ru/storage/v1/object/public/media/?v=1',
+        'media',
+      ),
+    ).toBeNull()
   })
 })

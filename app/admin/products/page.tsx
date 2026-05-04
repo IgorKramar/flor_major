@@ -16,8 +16,11 @@ import { TypographyPanel } from '@/components/admin/typography-panel'
 import { useTypographyEditor } from '@/lib/hooks/use-typography-editor'
 import { TYPO_SCOPES } from '@/lib/typography-registry'
 import { revalidateSiteCache } from '@/lib/revalidate'
+import { extractStoragePath } from '@/lib/image-url'
 import type { Tables } from '@/lib/database.types'
 import { productSchema, type ProductImageInput } from '@/lib/validation/schemas'
+
+const MEDIA_BUCKET = 'media'
 
 type Product = Tables<'products'>
 type ProductImage = Tables<'product_images'>
@@ -184,9 +187,10 @@ export default function ProductsPage() {
   async function syncImages(productId: number, images: ProductImageInput[]) {
     const { data: existing } = await supabase
       .from('product_images')
-      .select('id')
+      .select('id, url')
       .eq('product_id', productId)
-    const existingIds = new Set((existing ?? []).map((row) => row.id))
+    const existingRows = existing ?? []
+    const existingIds = new Set(existingRows.map((row) => row.id))
     const keepIds = new Set<number>()
 
     const hasPrimary = images.some((img) => img.is_primary)
@@ -230,11 +234,25 @@ export default function ProductsPage() {
 
     const toDelete = Array.from(existingIds).filter((id) => !keepIds.has(id))
     if (toDelete.length > 0) {
+      const toDeleteSet = new Set(toDelete)
       const { error } = await supabase
         .from('product_images')
         .delete()
         .in('id', toDelete)
       if (error) throw error
+
+      const orphanPaths = existingRows
+        .filter((row) => toDeleteSet.has(row.id))
+        .map((row) => extractStoragePath(row.url, MEDIA_BUCKET))
+        .filter((p): p is string => p !== null)
+      if (orphanPaths.length > 0) {
+        const { error: storageError } = await supabase.storage
+          .from(MEDIA_BUCKET)
+          .remove(orphanPaths)
+        if (storageError) {
+          console.warn('storage.remove (syncImages) failed', storageError, orphanPaths)
+        }
+      }
     }
   }
 
@@ -305,11 +323,30 @@ export default function ProductsPage() {
 
   async function handleDelete(id: number) {
     if (!confirm('Удалить товар?')) return
+
+    const { data: imagesToOrphan } = await supabase
+      .from('product_images')
+      .select('url')
+      .eq('product_id', id)
+
     const { error } = await supabase.from('products').delete().eq('id', id)
     if (error) {
       toast.error('Ошибка удаления')
       return
     }
+
+    const orphanPaths = (imagesToOrphan ?? [])
+      .map((row) => extractStoragePath(row.url, MEDIA_BUCKET))
+      .filter((p): p is string => p !== null)
+    if (orphanPaths.length > 0) {
+      const { error: storageError } = await supabase.storage
+        .from(MEDIA_BUCKET)
+        .remove(orphanPaths)
+      if (storageError) {
+        console.warn('storage.remove (handleDelete) failed', storageError, orphanPaths)
+      }
+    }
+
     toast.success('Товар удалён')
     await revalidateSiteCache('/')
     await revalidateSiteCache('/catalog')
