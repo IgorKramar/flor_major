@@ -56,3 +56,34 @@ export function isAllowedImageUrl(input: string): boolean {
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false
   return ALLOWED_IMAGE_HOSTS.some((h) => parsed.hostname === h)
 }
+
+/**
+ * Storage public URL → path внутри указанного bucket для storage.remove().
+ *
+ * Принимает любую форму public URL (object или render):
+ *   .../storage/v1/object/public/<bucket>/<path>
+ *   .../storage/v1/render/image/public/<bucket>/<path>?...
+ *
+ * Возвращает <path>, если URL принадлежит нашему Storage И запрошенному bucket.
+ * Иначе возвращает null (внешние URL, legacy Cloud URL, неподходящий bucket — не трогаем).
+ */
+export function extractStoragePath(
+  url: string | null | undefined,
+  bucket: string,
+): string | null {
+  if (!url) return null
+
+  const objectMarker = `${STORAGE_OBJECT_PATH}${bucket}/`
+  const renderMarker = `${STORAGE_RENDER_PATH}${bucket}/`
+
+  const idx = url.indexOf(objectMarker)
+  const renderIdx = idx >= 0 ? -1 : url.indexOf(renderMarker)
+  if (idx < 0 && renderIdx < 0) return null
+
+  const start = idx >= 0 ? idx + objectMarker.length : renderIdx + renderMarker.length
+  const tail = url.slice(start)
+  const queryAt = tail.indexOf('?')
+  const path = queryAt >= 0 ? tail.slice(0, queryAt) : tail
+
+  return path.length > 0 ? path : null
+}
