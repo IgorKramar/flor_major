@@ -83,6 +83,7 @@ export const TYPO_SCOPES: readonly TypoScopeDef[] = [
       { key: 'subheading', label: 'Подзаголовок страницы', sampleText: 'Все наши композиции в одном месте' },
       { key: 'filter_chip', label: 'Чип фильтра', sampleText: 'Букеты' },
       { key: 'card_title', label: 'Название карточки', sampleText: 'Композиция «Закат»' },
+      { key: 'card_description', label: 'Описание товара в карточке', sampleText: 'Розы Freedom, эвкалипт, рускус' },
       { key: 'card_price', label: 'Цена в карточке', sampleText: 'от 4 500 ₽' },
     ],
   },

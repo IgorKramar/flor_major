@@ -158,6 +158,7 @@ export function CatalogBrowser({
 
   const chipStyle = typoStyle(typography, 'catalog_page', 'filter_chip')
   const cardTitleStyle = typoStyle(typography, 'catalog_page', 'card_title')
+  const cardDescStyle = typoStyle(typography, 'catalog_page', 'card_description')
   const cardPriceStyle = typoStyle(typography, 'catalog_page', 'card_price')
 
   return (
@@ -266,7 +267,10 @@ export function CatalogBrowser({
                     {highlight(product.title, q)}
                   </h3>
                   {product.description ? (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
+                    <p
+                      className="text-sm text-muted-foreground line-clamp-2"
+                      style={cardDescStyle}
+                    >
                       {highlight(product.description, q)}
                     </p>
                   ) : null}
