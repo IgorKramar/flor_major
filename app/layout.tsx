@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next"
 import { Cormorant_Garamond, Montserrat } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import {
   getContactInfo,
@@ -252,9 +251,6 @@ export default async function RootLayout({
           Перейти к основному содержимому
         </a>
         {children}
-        {process.env.NODE_ENV === "production" && settings.enable_analytics && (
-          <Analytics />
-        )}
       </body>
     </html>
   )
