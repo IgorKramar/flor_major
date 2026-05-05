@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Plus, Pencil, Trash2, Search } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { toast } from 'sonner'
 import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
@@ -374,41 +373,10 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">Товары</h1>
-          <p className="text-gray-600 mt-1 text-sm sm:text-base">Управление ассортиментом товаров</p>
-        </div>
-        <div className="flex gap-2">
-          <Link
-            href="/admin/categories"
-            className="flex-1 sm:flex-none text-center px-4 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50"
-          >
-            Категории
-          </Link>
-          <button
-            type="button"
-            onClick={openNew}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Добавить
-          </button>
-        </div>
+      <div className="min-w-0">
+        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">Товары</h1>
+        <p className="text-gray-600 mt-1 text-sm sm:text-base">Управление ассортиментом товаров</p>
       </div>
-
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Поиск по названию, описанию, бейджу..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-        />
-      </div>
-
-      <SectionSurfaceEditor sectionKey="products" />
 
       {PRODUCTS_SCOPE && !typoEditor.loading && (
         <details className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
@@ -441,6 +409,29 @@ export default function ProductsPage() {
           </div>
         </details>
       )}
+
+      <SectionSurfaceEditor sectionKey="products" />
+
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <button
+          type="button"
+          onClick={openNew}
+          className="sm:w-auto inline-flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          Добавить
+        </button>
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Поиск по названию, описанию, бейджу..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+          />
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProducts.map((product) => {
