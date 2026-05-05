@@ -190,7 +190,6 @@ export default function ProductsPage() {
       .eq('product_id', productId)
     const existingRows = existing ?? []
     const existingIds = new Set(existingRows.map((row) => row.id))
-    const keepIds = new Set<number>()
 
     const hasPrimary = images.some((img) => img.is_primary)
     const normalized = images.map((img, idx) => ({
@@ -201,37 +200,27 @@ export default function ProductsPage() {
       is_primary: img.is_primary || (!hasPrimary && idx === 0),
     }))
 
-    for (const img of normalized) {
-      if (img.id && existingIds.has(img.id)) {
-        keepIds.add(img.id)
-        const { error } = await supabase
-          .from('product_images')
-          .update({
-            url: img.url,
-            alt: img.alt,
-            sort_order: img.sort_order,
-            is_primary: img.is_primary,
-          })
-          .eq('id', img.id)
-        if (error) throw error
-      } else {
-        const { data: inserted, error } = await supabase
-          .from('product_images')
-          .insert({
-            product_id: productId,
-            url: img.url,
-            alt: img.alt,
-            sort_order: img.sort_order,
-            is_primary: img.is_primary,
-          })
-          .select('id')
-          .single()
-        if (error) throw error
-        if (inserted?.id) keepIds.add(inserted.id)
-      }
+    const toUpdate = normalized.filter(
+      (img) => img.id != null && existingIds.has(img.id),
+    )
+    const toInsert = normalized.filter(
+      (img) => img.id == null || !existingIds.has(img.id),
+    )
+    const keepIds = new Set(toUpdate.map((img) => img.id as number))
+    const toDelete = Array.from(existingIds).filter((id) => !keepIds.has(id))
+
+    // Шаг 1: снять is_primary у всех остающихся existing-строк, чтобы освободить
+    // partial unique index `product_images_one_primary_per_product` для последующих
+    // UPDATE/INSERT. Без этого замена primary-фото падала с 23505.
+    if (toUpdate.length > 0) {
+      const { error } = await supabase
+        .from('product_images')
+        .update({ is_primary: false })
+        .in('id', Array.from(keepIds))
+      if (error) throw error
     }
 
-    const toDelete = Array.from(existingIds).filter((id) => !keepIds.has(id))
+    // Шаг 2: DELETE убранных + cleanup blob'ов в Storage.
     if (toDelete.length > 0) {
       const toDeleteSet = new Set(toDelete)
       const { error } = await supabase
@@ -251,6 +240,55 @@ export default function ProductsPage() {
         if (storageError) {
           console.warn('storage.remove (syncImages) failed', storageError, orphanPaths)
         }
+      }
+    }
+
+    // Шаг 3: UPDATE existing — данные кроме is_primary (его выставит Шаг 5).
+    for (const img of toUpdate) {
+      const { error } = await supabase
+        .from('product_images')
+        .update({
+          url: img.url,
+          alt: img.alt,
+          sort_order: img.sort_order,
+        })
+        .eq('id', img.id as number)
+      if (error) throw error
+    }
+
+    // Шаг 4: INSERT новых с is_primary=false (primary поставит Шаг 5).
+    // Сохраняем insert-результат в Map по ссылке на исходный normalized-элемент,
+    // чтобы найти id для финального primary, если им стало новое фото.
+    const insertedIdByImage = new Map<typeof normalized[number], number>()
+    for (const img of toInsert) {
+      const { data: inserted, error } = await supabase
+        .from('product_images')
+        .insert({
+          product_id: productId,
+          url: img.url,
+          alt: img.alt,
+          sort_order: img.sort_order,
+          is_primary: false,
+        })
+        .select('id')
+        .single()
+      if (error) throw error
+      if (inserted?.id) insertedIdByImage.set(img, inserted.id)
+    }
+
+    // Шаг 5: один UPDATE для итоговой primary-строки.
+    const primaryDesired = normalized.find((img) => img.is_primary)
+    if (primaryDesired) {
+      const primaryId =
+        primaryDesired.id != null && existingIds.has(primaryDesired.id)
+          ? primaryDesired.id
+          : insertedIdByImage.get(primaryDesired)
+      if (primaryId != null) {
+        const { error } = await supabase
+          .from('product_images')
+          .update({ is_primary: true })
+          .eq('id', primaryId)
+        if (error) throw error
       }
     }
   }
