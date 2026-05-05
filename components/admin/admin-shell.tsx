@@ -23,7 +23,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-gray-50">
         <Spinner className="w-8 h-8" />
       </div>
     )
@@ -32,9 +32,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   if (!session) return null
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-[100dvh] bg-gray-50">
       <AdminSidebar />
-      <main className="lg:pl-64 pb-20 lg:pb-8">
+      <main className="lg:pl-64 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-8">
         <div className="p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
       <AdminMobileNav />
