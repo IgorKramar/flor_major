@@ -505,7 +505,7 @@ export default function ProductsPage() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 sm:p-4">
+        <div className="fixed inset-0 bg-black/50 z-60 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
             <div className="p-5 sm:p-6 overflow-y-auto flex-1">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-5 sm:mb-6">
