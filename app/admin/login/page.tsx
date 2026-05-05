@@ -44,7 +44,7 @@ export default function AdminLoginPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-gray-50">
         <Spinner className="w-8 h-8" />
       </div>
     )
@@ -55,7 +55,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/20 p-4">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/20 p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-6 sm:mb-8">
